@@ -418,6 +418,8 @@ const mainCount = x => x.ch.filter(c => !c.x).length;
 const leaves = x => x.ch.length ? x.ch.filter(c => !c.x).flatMap(leaves) : [x];
 // latest logged chapter count for a leaf
 const last = (N, id) => { const r = N.log.filter(l => l.p === id).sort((a, b) => a.d.localeCompare(b.d) || a.c - b.c).pop(); return r ? r.c : 0; };
+// after logAt: keep one entry per section for day d (the newest, from index `since` on, replaces earlier ones that day)
+function mergeDay(N, d, since) { const fresh = N.log.slice(since); N.log = N.log.filter((l, i) => i >= since || l.d !== d || !fresh.some(f => f.p === l.p)); }
 // log 'read up to chapter c' on date d for a node (spreads over its leaves)
 function logAt(N, x, c, d) { let rem = c; lv(x).forEach(l => { const v = l.total ? Math.min(rem, l.total) : rem; rem -= v; l.read = v; if (v !== last(N, l.id))
     N.log.push({ d, c: v, p: l.id }); }); }
@@ -838,7 +840,7 @@ const cmpH = () => { const r = S.novels.filter(n => n.pages).sort((a, b) => b.pa
 <span>${esc(n.t)}</span><div class="bar"><i style="width:${n.pages / mx * 100}%"></i></div>\
 <span>${fmtN(n.pages)} words${c ? ` · ${c} ch · ${fmtN(n.pages / c)} words/ch` : ''}</span></div>`; }).join('')}</div>`; };
 function bump(id) { const N = S.novels.find(n => n.id === id); if (!N)
-    return; logAt(N, N.root, dR(N.root) + 1, today()); if (N.status === 'planned')
+    return; const since = N.log.length; logAt(N, N.root, dR(N.root) + 1, today()); mergeDay(N, today(), since); if (N.status === 'planned')
     N.status = 'reading'; if (!N.st)
     N.st = today(); if (mT(N.root) && mR(N.root) >= mT(N.root)) {
     N.status = 'completed';
@@ -1139,7 +1141,7 @@ ${picIn('Banner image · whole book', 'pickBanner(this.files[0])', N.banner, 'no
 <div style="align-self:end"><button class="ghost red" onclick="delN()">${ui.cd ? 'Click again to delete' : 'Delete novel'}</button></div></div>`;
 // Progress tab: left panel = chapters / sections, right panel = log form + history
 function detCols(N, x, ed) {
-    const leaf = !x.ch.length, nm = id => { const q = fnd(N.root, id); return q && q !== N.root ? ' · ' + q.name : ''; };
+    const leaf = !x.ch.length;
     return `<div class="cols"><div class="panel">
 ${detSecName(x, ed)}
 ${detTotalIn(x, ed, leaf)}${chk(x)}
@@ -1148,7 +1150,7 @@ ${detTotalIn(x, ed, leaf)}${chk(x)}
 ${leaf ? detLeaf(x, ed) : detList(N, x, ed)}
 ${detAddBox(x, ed, leaf)}</div>
 <div class="panel">${detLog(N, x, leaf)}
-<div class="hist" style="margin-top:18px">${hist(N, ed, nm)}</div></div></div>`;
+<div class="hist" style="margin-top:18px">${hist(N, x, ed)}</div></div></div>`;
 }
 const detSecName = (x, ed) => ed && PATH.length ? `<div style="max-width:320px;margin-top:14px">${inpN(x.id, 'Section name', 'name', x.name)}</div>` : '';
 const detTotalIn = (x, ed, leaf) => ed && !leaf ? `<div style="max-width:320px;margin-top:14px"><label>Total chapters (optional)</label>\
@@ -1210,10 +1212,22 @@ function chk(x) {
         t = 'The other sections already add up to the total.';
     return t ? `<div class="warn">${t}</div>` : '';
 }
-const hist = (N, ed, nm) => { const it = [...N.log.map(l => ({ d: l.d, k: 1, h: `<div><span>${l.d}${esc(nm(l.p))}</span>\
-<span>Ch ${l.c}${ed ? `<a onclick="rmLog('${l.d}',${l.c},'${l.p || ''}')">✕</a>` : ''}</span>\
-</div>` })), ...(N.br || []).map((b, i) => ({ d: b.f, k: 0, h: `<div><span>⏸ Break · ${b.f} → ${b.t || 'ongoing'}</span>\
-<span>${ed ? `<a onclick="rmBr(${i})">✕</a>` : ''}</span></div>` }))].sort((a, b) => b.d.localeCompare(a.d) || b.k - a.k); return it.length ? it.map(x => x.h).join('') : '<span style="color:var(--mut)">No dated entries yet.</span>'; };
+// log dates are shown MM/DD/YYYY
+const logDate = d => us(d).replace(/-/g, '/');
+// the direct subdivision of x that holds a log entry's section (its name is shown next to the date); none when x is that section
+const logPart = (x, id) => { const c = x.ch.find(z => ids(z).includes(id)); return c ? ' · ' + c.name : ''; };
+// chapter number of a log entry counted from the start of x: main chapters before its section inside x + its own count
+const logCh = (x, l) => { let o = 0; for (const q of leaves(x)) {
+    if (ids(q).includes(l.p))
+        return o + l.c;
+    o += q.total || 0;
+} return l.c; };
+// log history of x: only entries inside x (whole book = all), chapter counted from x's start; breaks belong to the whole book.
+// Newest date first; on the same day the entry added last is on top (i = position in the saved list)
+const hist = (N, x, ed) => { const it = [...N.log.map((l, i) => ({ l, i })).filter(({ l }) => x === N.root || ids(x).includes(l.p)).map(({ l, i }) => ({ d: l.d, k: 1, i, h: `<div><span>${logDate(l.d)}${esc(logPart(x, l.p))}</span>\
+<span>Ch ${logCh(x, l)}${ed ? `<a onclick="rmLog('${l.d}',${l.c},'${l.p || ''}')">✕</a>` : ''}</span>\
+</div>` })), ...(N.br || []).map((b, i) => ({ d: b.f, k: 0, i, h: `<div><span>⏸ Break · ${logDate(b.f)} → ${b.t ? logDate(b.t) : 'ongoing'}</span>\
+<span>${ed ? `<a onclick="rmBr(${i})">✕</a>` : ''}</span></div>` }))].sort((a, b) => b.d.localeCompare(a.d) || b.k - a.k || b.i - a.i); return it.length ? it.map(x => x.h).join('') : '<span style="color:var(--mut)">No dated entries yet.</span>'; };
 
 // Novel / section page actions: edit mode, sections, fields, breaks, logging, pictures, delete. (The HTML lives in detail.js.)
 function tab(t) { ui.tab = t; render(); }
