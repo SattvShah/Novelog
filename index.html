@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Novelog</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { --bg:#edf1f5; --card:#fff; --tx:#2f3f4f; --mut:#7a8ea3; --line:#dde5ee; --acc:#3db4f2; --nav:#152232; --ok:#4cca51; --in:#f3f6f9; box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+html { scroll-padding-top:env(safe-area-inset-top,0px); }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--tx); font:15px/1.45 "Overpass",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+header { position:sticky; top:env(safe-area-inset-top,0px); z-index:5; background:var(--nav); display:flex; align-items:center; gap:6px; padding:0 20px; height:56px; color:#dbe6f2; flex-wrap:nowrap; }
+.brand { font-weight:800; font-size:19px; margin-right:18px; white-space:nowrap; }
+.brand b { color:var(--acc); }
+header nav button { background:none; border:0; color:#9fb2c6; font:600 14px inherit; font-family:inherit; padding:8px 12px; border-radius:6px; cursor:pointer; }
+header nav button.on,header nav button:hover { color:#fff; }
+header nav button.on { background:rgba(255,255,255,.08); }
+.sp { flex:1; }
+.btn,.ghost { font-family:inherit; font-weight:700; font-size:13px; border-radius:6px; padding:9px 14px; cursor:pointer; border:0; white-space:nowrap; }
+.btn { background:var(--acc); color:#fff; }
+.btn:hover { filter:brightness(1.08); }
+.ghost { background:rgba(255,255,255,.08); color:#dbe6f2; }
+.ghost.d { background:var(--in); color:var(--tx); }
+.ghost.red { background:none; color:#e85d75; padding-left:0; }
+main { max-width:1080px; margin:0 auto; padding:26px 20px 60px; }
+h1 { font-size:18px; margin:0 0 14px; }
+.tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+.tabs button { border:0; background:var(--card); color:var(--mut); font:700 13px inherit; font-family:inherit; padding:8px 14px; border-radius:20px; cursor:pointer; }
+.tabs button.on { background:var(--acc); color:#fff; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:20px; }
+.nv { cursor:pointer; transition:transform .15s; }
+.nv:hover { transform:translateY(-3px); }
+.cv { aspect-ratio:2/3; border-radius:6px; position:relative; overflow:hidden; box-shadow:0 8px 24px rgba(20,40,70,.18); display:flex; align-items:flex-end; padding:12px; color:#fff; }
+.cv .ini { position:absolute; top:8px; right:12px; font-size:56px; font-weight:800; opacity:.18; line-height:1; }
+.cv .ct { font-weight:800; font-size:14px; line-height:1.2; text-shadow:0 2px 8px rgba(0,0,0,.4); position:relative; }
+.chip { position:absolute; top:10px; left:10px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; background:rgba(0,0,0,.35); padding:3px 7px; border-radius:10px; }
+.nv .meta { padding:9px 2px 0; font-size:12.5px; color:var(--mut); }
+.nv .meta b { color:var(--tx); font-weight:700; }
+.bar { height:6px; border-radius:4px; background:var(--line); overflow:hidden; margin-top:6px; }
+.bar i { display:block; height:100%; background:var(--acc); border-radius:4px; }
+.bar i.ok { background:var(--ok); }
+.empty { color:var(--mut); text-align:center; padding:50px 0; }
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:20px; }
+.tile,.panel { background:var(--card); border-radius:8px; padding:16px 18px; box-shadow:0 2px 10px rgba(20,40,70,.05); }
+.tile .n { font-size:28px; font-weight:800; color:var(--acc); line-height:1.1; }
+.tile .l { font-size:12px; color:var(--mut); font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-top:4px; }
+.panels { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.panel.w { grid-column:1/-1; }
+.panel h3 { margin:0 0 10px; font-size:14px; }
+.ctrl { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+select,input { font-family:inherit; font-size:14px; color:var(--tx); background:var(--in); border:1px solid var(--line); border-radius:6px; padding:9px 11px; width:100%; }
+.ctrl select { width:auto; background:var(--card); }
+svg { width:100%; height:auto; display:block; }
+svg text { fill:var(--mut); font:11px "Overpass",system-ui,sans-serif; }
+.modal { position:fixed; inset:0; background:rgba(8,16,26,.6); z-index:20; display:flex; align-items:flex-start; justify-content:center; padding:calc(30px + env(safe-area-inset-top,0px)) 14px 30px; overflow:auto; }
+.modal[hidden] { display:none; }
+.sheet { background:var(--card); border-radius:10px; width:100%; max-width:520px; overflow:hidden; }
+.mh { padding:22px 22px 16px; color:#fff; font-weight:800; font-size:19px; }
+.mb { padding:18px 22px 22px; }
+.f { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.f label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--mut); display:block; margin-bottom:4px; }
+.hist { max-height:130px; overflow:auto; font-size:13px; margin-top:10px; }
+.hist div { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--line); color:var(--mut); }
+.hist a { color:#e85d75; cursor:pointer; margin-left:10px; }
+.ft { display:flex; gap:10px; align-items:center; margin-top:16px; }
+textarea { width:100%; height:170px; font:12px monospace; background:var(--in); color:var(--tx); border:1px solid var(--line); border-radius:6px; padding:10px; }
+.chips { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 2px; }
+.chips span { background:var(--card); border-radius:12px; padding:3px 9px; font-size:12px; color:var(--mut); }
+.sheet { max-width:580px!important; }
+.cnt { font-size:12px; color:var(--mut); white-space:nowrap; }
+.crumb { font-size:13px; font-weight:700; margin-bottom:10px; }
+.crumb a { color:var(--acc); cursor:pointer; }
+label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--mut); display:block; margin-bottom:5px; }
+main.w { max-width:1240px; padding-top:30px; }
+.grid { gap:30px 26px; }
+.top { display:flex; gap:10px; margin-bottom:26px; align-items:center; }
+.dp { display:grid; grid-template-columns:260px 1fr; gap:40px; margin-bottom:34px; }
+.cover { aspect-ratio:2/3; border-radius:10px; box-shadow:0 14px 40px rgba(20,40,70,.25); position:relative; overflow:hidden; }
+.cover .ini { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:110px; font-weight:800; color:rgba(255,255,255,.3); }
+.chip2 { display:inline-block; background:var(--acc); color:#fff; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; padding:4px 10px; border-radius:12px; }
+.tt { font-size:34px; line-height:1.15; margin:12px 0 4px; }
+.au { color:var(--mut); font-weight:700; margin-bottom:26px; }
+.stats { display:flex; gap:38px; flex-wrap:wrap; margin-bottom:20px; }
+.stats b { display:block; font-size:22px; }
+.stats span { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--mut); }
+.bar.big { height:10px; margin:0 0 6px; }
+.cols { display:grid; grid-template-columns:1.7fr 1fr; gap:28px; align-items:start; }
+.cols .panel { padding:28px; }
+.sh { display:flex; justify-content:space-between; align-items:baseline; margin:16px 0 18px; }
+.sh h3 { margin:0; font-size:19px; }
+.sg { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:16px; }
+.sc { background:var(--in); border-radius:10px; padding:14px; cursor:pointer; display:flex; gap:12px; align-items:flex-start; transition:transform .15s,box-shadow .15s; }
+.sc:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(20,40,70,.12); }
+.sc b { font-size:15px; }
+.sc span { font-size:12px; color:var(--mut); }
+.sc a { color:#e85d75; cursor:pointer; }
+.ef { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:16px; margin-top:24px; padding:24px; }
+.lr { display:grid; grid-template-columns:1fr 1.3fr; gap:12px; margin-bottom:12px; }
+.hist { max-height:320px; }
+.hist div { padding:8px 0; }
+.xk { display:flex!important; gap:6px; align-items:center; text-transform:none; font-size:12px; letter-spacing:0; font-weight:700; margin:0; }
+.xk input { width:auto; }
+.sc.x { border:1.5px dashed var(--mut); background:transparent; }
+.sc.x .bar i { background:#c063ff; }
+.xt { font-style:normal; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#c063ff; }
+.ov { font-style:normal; color:#e8a13a; font-weight:800; }
+.warn { background:rgba(232,161,58,.15); color:#b9770e; border-radius:8px; padding:10px 14px; font-size:13px; font-weight:700; margin-top:14px; }
+.fin summary { cursor:pointer; font-weight:700; font-size:13px; color:var(--acc); margin-top:18px; }
+.tabs2 { display:flex; gap:6px; border-bottom:1px solid var(--line); margin:-6px 0 28px; }
+.tabs2 button { background:none; border:0; border-bottom:3px solid transparent; color:var(--mut); font:700 15px inherit; font-family:inherit; padding:12px 18px; cursor:pointer; }
+.tabs2 button.on { color:var(--acc); border-color:var(--acc); }
+.qb { position:absolute; left:0; right:0; bottom:0; padding:10px 0; text-align:center; background:rgba(40,50,62,.74); color:#fff; font-weight:800; font-size:13px; opacity:0; transform:translateY(100%); transition:opacity .15s,transform .15s; z-index:2; }
+.qb:hover { background:rgba(40,50,62,.9); }
+.nv:hover .qb { opacity:1; transform:none; }
+.seg { display:flex; gap:4px; background:var(--in); border-radius:8px; padding:4px; margin-bottom:18px; }
+.seg button { flex:1; border:0; background:none; color:var(--mut); font:700 13px inherit; font-family:inherit; padding:8px; border-radius:6px; cursor:pointer; }
+.seg button.on { background:var(--card); color:var(--acc); box-shadow:0 1px 4px rgba(20,40,70,.12); }
+.cr { display:grid; grid-template-columns:minmax(110px,200px) 1fr minmax(130px,auto); gap:12px; align-items:center; padding:7px 0; font-size:13px; }
+.cr span:last-child { color:var(--mut); text-align:right; }
+.el { display:flex; flex-direction:column; gap:10px; }
+.eh,.er1 { display:grid; grid-template-columns:minmax(0,1fr) 96px 96px 78px; gap:8px; align-items:center; }
+.er1 input,.er1 button { min-width:0; width:100%; }
+.ai { border-style:dashed!important; color:var(--acc)!important; font-style:italic; background:transparent!important; }
+.eh span { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--mut); }
+.er { background:var(--in); border-radius:10px; padding:10px 12px; }
+.er input { background:var(--card); }
+.mo summary { cursor:pointer; font-size:12px; color:var(--mut); font-weight:700; margin-top:8px; list-style:none; }
+.mo summary::-webkit-details-marker { display:none; }
+.mo summary:hover { color:var(--acc); }
+.er2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; align-items:end; }
+.er2 .xk { grid-column:1/-1; }
+.er2 a { color:#e85d75; cursor:pointer; font-size:13px; font-weight:700; }
+.mo.add { margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+.mo.add summary { margin:0; font-size:14px; color:var(--tx); }
+.dv2 { display:grid; grid-template-columns:.6fr 1fr 1fr; gap:8px; margin-top:14px; }
+.dvb { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+@media(max-width:800px) {
+  .eh,.er1 { grid-template-columns:minmax(0,1fr) 70px 70px 66px; }
+}
+@media(max-width:800px) {
+  .dp { grid-template-columns:1fr; gap:24px; }
+  .cover { max-width:190px; }
+  .cols { grid-template-columns:1fr; }
+  .stats { gap:22px; }
+  .tt { font-size:26px; }
+}
+@media(max-width:640px) {
+  .panels { grid-template-columns:1fr; }
+  header { padding:0 12px; }
+  .brand { margin-right:6px; }
+  .btn { padding:8px 10px; }
+}
+.hist { padding-right:14px; scrollbar-gutter:stable; scrollbar-width:thin; }
+.hist::-webkit-scrollbar { width:8px; }
+.hist::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+.ns { position:relative; display:block; }
+.ns input { padding-right:30px; -moz-appearance:textfield; appearance:textfield; }
+.ns input::-webkit-inner-spin-button,.ns input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+.ns .st { position:absolute; right:4px; top:4px; bottom:4px; width:20px; display:flex; flex-direction:column; gap:2px; opacity:.5; transition:opacity .15s; }
+.ns:hover .st,.ns:focus-within .st { opacity:1; }
+.ns .st button { flex:1; border:0; padding:0; background:var(--line); border-radius:4px; cursor:pointer; position:relative; min-height:0; }
+.ns .st button:hover { background:var(--acc); }
+.ns .st button::after { content:''; position:absolute; left:50%; top:50%; width:4px; height:4px; border:solid var(--mut); border-width:1.5px 0 0 1.5px; }
+.ns .st button:hover::after { border-color:#fff; }
+.ns .up::after { transform:translate(-50%,-30%) rotate(45deg); }
+.ns .dn::after { transform:translate(-50%,-70%) rotate(225deg); }
+.mo>summary { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.mt { display:inline-flex; align-items:center; gap:7px; padding:4px 11px; border-radius:14px; background:color-mix(in srgb,var(--acc) 14%,transparent); color:var(--acc); font-weight:800; font-size:12px; white-space:nowrap; }
+.mt::before { content:'More'; }
+.mt::after { content:''; width:6px; height:6px; border:solid currentColor; border-width:0 2px 2px 0; transform:rotate(45deg) translate(-2px,-2px); }
+.mo[open]>summary .mt::before { content:'Less'; }
+.mo[open]>summary .mt::after { transform:rotate(-135deg) translate(-2px,-2px); }
+.mo>summary:hover .mt { background:color-mix(in srgb,var(--acc) 25%,transparent); }
+input.dt { background-image:var(--cal); background-repeat:no-repeat; background-position:right 10px center; padding-right:34px; }
+#cal { position:absolute; z-index:60; width:288px; background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:0 18px 50px rgba(10,20,40,.28); padding:12px; color:var(--tx); }
+#cal button { border:0; background:none; color:var(--tx); cursor:pointer; font:inherit; font-weight:700; border-radius:8px; }
+#cal .ch { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+#cal .ch b { font-size:14px; }
+#cal .ch button { width:30px; height:30px; color:var(--mut); }
+#cal .ch button:hover { background:var(--in); color:var(--acc); }
+#cal .cg { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
+#cal .cg i { font-style:normal; font-size:11px; font-weight:800; color:var(--mut); padding:4px 0; }
+#cal .cg button { height:34px; font-size:13px; }
+#cal .cg button:hover { background:var(--in); }
+#cal .cg .o { color:var(--mut); opacity:.55; }
+#cal .cg .t { box-shadow:inset 0 0 0 1.5px var(--acc); }
+#cal .cg .s { background:var(--acc); color:#fff; opacity:1; }
+#cal .cf { display:flex; justify-content:space-between; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); }
+#cal .cf button { color:var(--acc); padding:6px 10px; font-size:13px; }
+#cal .cf button:hover { background:var(--in); }
+#sv { font-size:12px; color:#9fb2c6; margin-right:10px; white-space:nowrap; }
+#sv.err { color:#ff8a8a; cursor:pointer; font-weight:700; }
+.sc .sb { flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
+.sth { flex:none; width:46px; aspect-ratio:2/3; border-radius:5px; background-size:cover; background-position:center; box-shadow:0 3px 10px rgba(20,40,70,.2); }
+.bnr { width:100vw; margin:0 0 -110px calc(50% - 50vw); height:clamp(180px,21vw,400px); background-size:cover; background-position:center; }
+.dp.hb { position:relative; }
+.dp.hb>div:nth-child(2) { padding-top:122px; }
+.thg { display:grid; grid-template-columns:repeat(4,1fr); gap:22px 10px; margin:22px 0 10px; }
+.thm { text-align:center; cursor:pointer; font-size:12px; color:var(--mut); }
+.thm i { display:block; width:54px; height:54px; border-radius:50%; margin:0 auto 9px; transition:transform .12s; }
+.thm:hover i { transform:scale(1.08); }
+.thm.on i { box-shadow:0 0 0 3px var(--card),0 0 0 6px var(--acc); }
+.thm.on { color:var(--tx); font-weight:700; }
+main.hb { padding-top:0; }
+body { overflow-x:clip; }
+.hint { font-size:11.5px; color:var(--mut); margin-top:4px; line-height:1.35; text-transform:none; letter-spacing:0; font-weight:400; }
+.sheet.wide { max-width:780px!important; }
+.cst { position:relative; margin:0 auto; overflow:hidden; border-radius:6px; user-select:none; }
+.cst img { display:block; width:100%; height:100%; pointer-events:none; }
+.cbx { position:absolute; box-sizing:border-box; border:2px solid #fff; outline:2px solid var(--acc); box-shadow:0 0 0 9999px rgba(0,0,0,.62); cursor:move; touch-action:none; }
+.crow { display:flex; align-items:center; gap:12px; margin-top:16px; }
+.crow label { margin:0; }
+.crow input { flex:1; accent-color:var(--acc); }
+</style></head><body>
+<header><div class="brand" onclick="back()" style="cursor:pointer">Novel<b>og</b></div><nav><button data-v="stats">Stats</button></nav><div class="sp"></div><span id="sv"></span><span id="hd" style="display:flex;gap:8px"></span><button class="ghost" id="th">Theme</button>&nbsp;<button class="ghost" id="bk">Backup</button>&nbsp;<button class="btn" id="add">+ Add</button></header>
+<main id="app"></main><div class="modal" id="m" hidden></div>
+<script>
+// Data and math, no HTML: helpers, dates, state (S, ui), section-tree totals, auto-fill / spill-over, 'ends at' fitting, chapter events for graphs.
+const K = 'novelog.v1', $ = s => document.querySelector(s), uid = () => Math.random().toString(36).slice(2, 9);
+// today's date as YYYY-MM-DD (local time)
+const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+// big numbers short: 12.3M, 45k
+const fmtN = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e4 ? Math.round(n / 1e3) + 'k' : Math.round(n);
+// normalise any typed date to YYYY-MM-DD ('' if invalid)
+const nd = v => {
+    v = String(v || '').trim();
+    let m;
+    if (m = /^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/.exec(v))
+        v = m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0');
+    else if (m = /^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2}|\d{4})$/.exec(v))
+        v = (m[3].length === 2 ? '20' + m[3] : m[3]) + '-' + m[1].padStart(2, '0') + '-' + m[2].padStart(2, '0');
+    m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+    if (!m)
+        return '';
+    if (+m[1] < 100)
+        v = (2000 + +m[1]) + '-' + m[2] + '-' + m[3];
+    const d = new Date(v + 'T00:00:00Z');
+    return isNaN(d) || d.toISOString().slice(0, 10) !== v ? '' : v;
+};
+// us = show date as MM-DD-YYYY, shw = put it into an input
+const us = v => v ? v.slice(5, 7) + '-' + v.slice(8, 10) + '-' + v.slice(0, 4) : '', shw = (el, v) => { el.value = el.type === 'date' ? v : us(v); };
+// live-format a date while it is being typed
+function fmtD(raw) {
+    if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(raw)) {
+        const v = nd(raw);
+        return v ? us(v) : raw;
+    }
+    const sg = ['', '', ''], cl = [0, 0, 0];
+    let i = 0;
+    for (const ch of raw) {
+        if (/\d/.test(ch)) {
+            if (i === 0 && sg[0] === '1' && +ch >= 3)
+                cl[i++] = 1;
+            else if (i === 1 && sg[1] === '3' && +ch >= 2)
+                cl[i++] = 1;
+            if (i < 2 && sg[i] === '0' && ch === '0')
+                continue;
+            if (i === 2 && sg[2].length >= 4)
+                continue;
+            sg[i] += ch;
+            if (i === 0 && (sg[0].length === 2 || +sg[0] >= 2))
+                cl[i++] = 1;
+            else if (i === 1 && (sg[1].length === 2 || +sg[1] >= 4))
+                cl[i++] = 1;
+        }
+        else if (/[\s\-\/.]/.test(ch) && i < 2 && sg[i] && sg[i] !== '0')
+            cl[i++] = 1;
+    }
+    return sg.map((q, j) => q ? q + (cl[j] && j < 2 ? '-' : '') : '').join('');
+}
+// commit a typed novel date field (st / fin)
+function dSet(k, el) { const v = nd(el.value); shw(el, v); setTimeout(() => set(k, v), 350); }
+// commit a typed 'finished on' date for a section
+function dFin(id, el) { const v = nd(el.value); shw(el, v); if (v && v !== el.defaultValue)
+    setTimeout(() => finishOn(id, v), 350); }
+const iso = t => new Date(t).toISOString().slice(0, 10);
+// make a new novel object (with its root section)
+const mk = (t, a, status, total, read, hue) => ({ id: uid(), t, a, pages: 0, status, log: [], fin: '', hue, root: { id: uid(), name: t, total, read, ch: [] } });
+// migrate old saved novels (no root) to the section-tree format
+function mig(n) {
+    if (n.root)
+        return;
+    const r = { id: uid(), name: n.t, total: n.total || 0, read: n.read || 0, ch: [] }, gs = {};
+    if (n.parts && n.parts.length) {
+        r.total = r.read = 0;
+        n.parts.forEach(p => { const l = { id: p.id, name: p.name, total: p.total || 0, read: p.read || 0, ch: [] }; if (p.g) {
+            if (!gs[p.g]) {
+                gs[p.g] = { id: uid(), name: p.g, total: 0, read: 0, ch: [] };
+                r.ch.push(gs[p.g]);
+            }
+            gs[p.g].ch.push(l);
+        }
+        else
+            r.ch.push(l); });
+    }
+    (n.log || []).forEach(l => { if (!l.p)
+        l.p = r.id; });
+    n.root = r;
+    delete n.parts;
+    delete n.total;
+    delete n.read;
+}
+// Starter library for a brand-new data folder
+const seed = () => ({ novels: [
+            mk('Re:Zero (Light Novel)', 'Tappei Nagatsuki', 'reading', 0, 0, 200),
+            mk("Omniscient Reader's Viewpoint", 'Sing Shong', 'reading', 551, 0, 265),
+            mk('Lord of the Mysteries', 'Cuttlefish That Loves Diving', 'completed', 1432, 1432, 340),
+            mk('Circle of Inevitability', 'Cuttlefish That Loves Diving', 'reading', 0, 0, 15),
+            mk('Classroom of the Elite: Year 1', 'Syougo Kinugasa', 'completed', 0, 0, 160),
+            mk('Classroom of the Elite: Year 2', 'Syougo Kinugasa', 'reading', 0, 0, 30)
+        ] });
+let S = { novels: [] };
+// load a data object as the app state (migrates it)
+const adopt = d => { if (!d || !d.novels)
+    throw new Error('not a Novelog data file'); S = d; S.novels.forEach(mig); };
+// screen state, not saved: v=view, f=filter, ed=edit mode, tab, lm=log mode, ld=last logged date, op=open folds
+let ui = { v: 'lib', f: 'all', sel: '', per: 'week', id: '', ed: false, cd: false, tab: 'prog', lm: 'ch' };
+// nT/nR = total/read chapters of a node (sum of leaves); T/R = same for a whole novel
+const nT = x => x.ch.length ? x.ch.reduce((a, c) => a + nT(c), 0) : x.total, nR = x => x.ch.length ? x.ch.reduce((a, c) => a + nR(c), 0) : x.read, T = n => nT(n.root), R = n => nR(n.root);
+// cnt = counts toward totals (side stories only if xc); tot/rd = total/read of a node under a filter
+const cnt = c => !c.x || c.xc, tot = (x, f) => { if (!x.ch.length)
+    return x.total; const m = x.ch.filter(f), a = m.reduce((q, c) => q + tot(c, f), 0); if (!x.dt)
+    return a; if (f === cnt)
+    return x.dt; const ex = x.ch.filter(c => c.x && c.xc).reduce((q, c) => q + tot(c, cnt), 0); return m.some(c => !tot(c, f)) ? Math.max(a, x.dt - ex) : a; }, rd = (x, f) => x.ch.length ? x.ch.filter(f).reduce((q, c) => q + rd(c, f), 0) : x.read;
+// mT/mR = main story only; dT/dR = main + counted side stories
+const mT = x => tot(x, c => !c.x), mR = x => rd(x, c => !c.x), dT = x => tot(x, cnt), dR = x => rd(x, cnt);
+// percent complete of a novel (main story)
+const pct = n => mT(n.root) ? Math.min(100, mR(n.root) / mT(n.root) * 100) : 0;
+// escape text for safe HTML
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// fallback cover gradient from a hue
+const grad = h => `linear-gradient(155deg,hsl(${h} 60% 48%),hsl(${(h + 45) % 360} 65% 26%))`;
+// date of the newest log entry of a novel
+const lastD = n => n.log.length ? n.log.map(l => l.d).sort().pop() : '';
+// per-day chapter counts for a node (feeds every graph)
+function events(id, ps) {
+    const e = [];
+    S.novels.forEach(n => {
+        if (id && n.id !== id)
+            return;
+        const pv = {}, dd = {}, pc2 = ppcMap(n), ld = n.log.map(l => l.d).sort(), bk = [...(n.br || []).filter(b => b.f).map(b => ({ f: b.f, t: b.t || ld.find(x => x >= b.f) || today() })), ...(n.status === 'paused' && n.pz ? [{ f: n.pz, t: today() }] : [])], inB = d => bk.some(b => d >= b.f && d <= b.t);
+        [...n.log].sort((a, b) => a.d.localeCompare(b.d) || a.c - b.c).forEach(l => { const k = l.p || '', d = Math.max(0, l.c - (pv[k] || 0)), o = dd[l.d] = dd[l.d] || {}; o[k] = (o[k] || 0) + d; pv[k] = l.c; });
+        if (!n.log.length && n.status === 'completed' && n.fin)
+            dd[n.fin] = Object.fromEntries(allL(n.root).map(l => [l.id, l.total]));
+        let prev = null;
+        Object.keys(dd).filter(D => D >= '1990-01-01').sort().forEach((D, i) => {
+            const t = Date.parse(D), m = Object.keys(dd[D]).reduce((a, k) => a + (!ps || ps.includes(k) ? dd[D][k] : 0), 0), pgs = Object.keys(dd[D]).reduce((a, k) => a + (!ps || ps.includes(k) ? dd[D][k] * (pc2[k] || 0) : 0), 0);
+            if (i === 0)
+                prev = n.st && Date.parse(n.st) < t ? Date.parse(n.st) : t;
+            const days = Math.max(1, Math.round((t - prev) / 864e5));
+            if (m > 0) {
+                let L = [];
+                if (t > prev && days <= 4000) {
+                    for (let j = 1; j <= days; j++)
+                        L.push(iso(prev + j * 864e5));
+                }
+                else
+                    L = [D];
+                let F = L.filter(d => d === D || !inB(d));
+                if (!F.length)
+                    F = L;
+                F.forEach(d => e.push({ d, n: m / F.length, pg: pgs / F.length }));
+            }
+            prev = t;
+        });
+    });
+    return e.sort((a, b) => a.d.localeCompare(b.d));
+}
+// ids of the sections currently opened inside the open novel
+let PATH = [];
+// value of the input with this id
+const gv = i => $('#' + i).value;
+// NV = open novel; fnd = find node by id; ids = ids of node + descendants; fa = mark node fully read
+const NV = () => S.novels.find(n => n.id === ui.id), fnd = (x, id) => { if (x.id === id)
+    return x; for (const c of x.ch) {
+    const r = fnd(c, id);
+    if (r)
+        return r;
+} }, ids = x => [x.id, ...x.ch.flatMap(ids)], fa = x => x.ch.length ? x.ch.filter(c => !c.x).forEach(fa) : (x.total && (x.read = x.total));
+// trail = [root, ...opened sections]; pc = percent complete of a node
+const trail = () => { let y = NV().root; const a = [y]; PATH.forEach(id => { y = y.ch.find(c => c.id === id) || y; a.push(y); }); return a; }, pc = x => { const t = mT(x); return t ? Math.min(100, mR(x) / t * 100) : 0; };
+// un = chapter count unknown/auto; lv = counted leaves; allL = all leaves
+const un = (c, f) => c.auto || tot(c, f) === 0, lv = x => x.ch.length ? x.ch.filter(cnt).flatMap(lv) : [x], allL = x => x.ch.length ? x.ch.flatMap(allL) : [x];
+// fill unknown (auto) section totals from the parent's declared total
+function infer(x) {
+    if (!x.ch.length)
+        return;
+    const f = cnt, m = x.ch.filter(f);
+    if (x.dt) {
+        const u = m.filter(c => un(c, f)), k = m.filter(c => !un(c, f)).reduce((a, c) => a + tot(c, f), 0), r = Math.max(0, x.dt - k);
+        u.forEach((c, i) => { const last = i === u.length - 1, v = last ? r : 0; if (c.ch.length)
+            c.dt = v;
+        else
+            c.total = v; c.auto = last && v > 0; });
+    }
+    else
+        m.forEach(c => { c.auto = false; });
+    x.ch.forEach(infer);
+}
+// drop/repair log entries that no longer match the sections
+function fixLogs(N) {
+    const L = lv(N.root), out = [];
+    let ch = false;
+    N.log.forEach(l => {
+        const q = fnd(N.root, l.p), i = q ? L.findIndex(z => z.id === q.id) : -1;
+        if (q && !q.ch.length && q.total && l.c > q.total && i >= 0) {
+            ch = true;
+            let rem = l.c;
+            L.slice(i).forEach(z => { const v = z.total ? Math.min(rem, z.total) : rem; rem -= v; if (v > 0)
+                out.push({ d: l.d, c: v, p: z.id }); });
+        }
+        else
+            out.push(l);
+    });
+    if (ch)
+        N.log = out;
+}
+// spill 'read' counts over into the next leaf when a leaf overflows
+function settle(N) { fixLogs(N); const L = lv(N.root); let carry = 0; L.forEach((l, i) => { let r = l.read + carry; if (l.total && r > l.total && i < L.length - 1) {
+    carry = r - l.total;
+    r = l.total;
+}
+else
+    carry = 0; l.read = r; }); }
+// main-story leaves of a node, in order
+const leaves = x => x.ch.length ? x.ch.filter(c => !c.x).flatMap(leaves) : [x];
+// latest logged chapter count for a leaf
+const last = (N, id) => { const r = N.log.filter(l => l.p === id).sort((a, b) => a.d.localeCompare(b.d) || a.c - b.c).pop(); return r ? r.c : 0; };
+// log 'read up to chapter c' on date d for a node (spreads over its leaves)
+function logAt(N, x, c, d) { let rem = c; lv(x).forEach(l => { const v = l.total ? Math.min(rem, l.total) : rem; rem -= v; l.read = v; if (v !== last(N, l.id))
+    N.log.push({ d, c: v, p: l.id }); }); }
+// date a node was finished ('' if not)
+function finD(N, q) { const L = leaves(q).filter(l => l.total); if (!L.length)
+    return ''; let m = ''; for (const l of L) {
+    const e = N.log.filter(g => g.p === l.id && g.c >= l.total).map(g => g.d).sort()[0];
+    if (!e)
+        return '';
+    if (e > m)
+        m = e;
+} return m; }
+// mark a node finished on a date (fills reads, logs)
+function finishOn(id, d) {
+    if (!d)
+        return;
+    const N = NV(), q = fnd(N.root, id);
+    leaves(q).filter(l => l.total).forEach(l => { N.log = N.log.filter(g => !(g.p === l.id && g.c >= l.total)); l.read = l.total; N.log.push({ d, c: l.total, p: l.id }); });
+    if (N.status === 'planned')
+        N.status = 'reading';
+    settle(N);
+    if (mT(N.root) && mR(N.root) >= mT(N.root)) {
+        N.status = 'completed';
+        if (!N.fin || d > N.fin)
+            N.fin = d;
+    }
+    save();
+    render();
+}
+// chapters before a node in the whole book (its start offset)
+const offs = (N, q) => { const d = ids(q); let o = 0; for (const l of leaves(N.root)) {
+    if (d.includes(l.id))
+        return o;
+    o += l.total;
+} return o; };
+// 'ends at ch.' shown for a node = offs + main chapters
+const endv = (N, c) => { const m = mT(c); return m ? offs(N, c) + m : ''; };
+// Typed "ends at ch." values are stored as q.en (absolute). Chapter counts of those sections are derived from them,
+// so editing an earlier section moves chapter counts, not the ends the user typed.
+function setEnd(id, e) {
+    const N = NV(), q = fnd(N.root, id);
+    if (e > 0)
+        q.en = e;
+    else {
+        delete q.en;
+        if (q.ch.length)
+            q.dt = 0;
+        else
+            q.total = 0;
+    }
+    q.auto = false;
+    fit(N);
+    settle(N);
+    save();
+    render();
+}
+// Re-derive chapter counts of sections that have a typed end (en), then fill auto totals. Repeats so both settle.
+function fit(N) {
+    const walk = (c, o) => {
+        if (c.en > 0) {
+            const v = Math.max(0, c.en - o);
+            if (c.ch.length)
+                c.dt = v;
+            else
+                c.total = v;
+            c.auto = false;
+        }
+        if (c.ch.length) {
+            let p = o;
+            c.ch.filter(z => !z.x).forEach(z => { p = walk(z, p); });
+            return c.en > 0 ? Math.max(o, c.en) : p;
+        }
+        return o + c.total;
+    };
+    for (let i = 0; i < 3; i++) {
+        walk(N.root, 0);
+        infer(N.root);
+    }
+}
+// words per chapter for every leaf, from section/novel word counts
+function ppcMap(N) {
+    const m = {}, go = (x, P) => {
+        if (!x.ch.length) {
+            m[x.id] = x.total && P ? P / x.total : 0;
+            return;
+        }
+        const cs = x.ch.filter(cnt), kp = cs.filter(c => c.pg).reduce((a, c) => a + c.pg, 0), ut = cs.filter(c => !c.pg).reduce((a, c) => a + dT(c), 0);
+        x.ch.forEach(c => { if (c.pg)
+            go(c, c.pg);
+        else if (P && cnt(c) && ut)
+            go(c, Math.max(0, P - kp) * dT(c) / ut);
+        else
+            go(c, 0); });
+    };
+    go(N.root, N.pages || 0);
+    return m;
+}
+
+// Storage. Preferred: a folder the user picks (File System Access API) holding
+//   novelog-data.json, covers/<novelId>.jpg, backups/novelog-YYYY-MM-DD.json (last 30 days).
+// Fallback: browser localStorage (key K). save() is the only call the rest of the app makes.
+const STORE = { mode: 'none', dir: null }, DATA = 'novelog-data.json';
+let busy = false, again = false, failed = false, written = {}, pendingDir = null;
+const idb = (m, k, v) => new Promise((ok, no) => {
+    const r = indexedDB.open('novelog-fs', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onerror = () => no(r.error);
+    r.onsuccess = () => { const s = r.result.transaction('kv', m === 'get' ? 'readonly' : 'readwrite').objectStore('kv'), q = m === 'get' ? s.get(k) : s.put(v, k); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); };
+});
+const badge = (t, bad) => { const b = $('#sv'); b.textContent = t; b.className = bad ? 'err' : ''; b.title = STORE.dir ? 'Saving to folder: ' + STORE.dir.name : ''; };
+async function fsDir(path, create) { const p = path.split('/'); let d = STORE.dir; for (const n of p.slice(0, -1))
+    d = await d.getDirectoryHandle(n, { create }); return [d, p[p.length - 1]]; }
+async function fsPut(path, data) { const [d, n] = await fsDir(path, true), w = await (await d.getFileHandle(n, { create: true })).createWritable(); await w.write(data); await w.close(); }
+async function fsGet(path) { try {
+    const [d, n] = await fsDir(path, false);
+    return await (await d.getFileHandle(n)).getFile();
+}
+catch (e) {
+    if (e.name === 'NotFoundError')
+        return null;
+    throw e;
+} }
+function save() {
+    if (STORE.mode === 'browser') {
+        try {
+            localStorage.setItem(K, JSON.stringify(S));
+        }
+        catch (e) { }
+        return;
+    }
+    if (STORE.mode !== 'folder')
+        return;
+    again = true;
+    badge('Saving…');
+    pump();
+}
+async function pump() {
+    if (busy)
+        return;
+    busy = true;
+    try {
+        while (again) {
+            again = false;
+            await flush();
+        }
+        failed = false;
+        badge('Saved');
+    }
+    catch (e) {
+        failed = true;
+        again = false;
+        badge('⚠ Not saved – click to retry', 1);
+        console.error(e);
+    }
+    busy = false;
+}
+// Pictures (novel cover `img`, novel `banner`, section `img`) are kept in memory as data URLs so the rest of the app is unchanged,
+// and written out as image files: covers/<id>.jpg, banners/<id>.jpg (id = novel or section id).
+const imgPath = (o, k) => (k === 'banner' ? 'banners/' : 'covers/') + o.id + '.jpg';
+function eachImg(fn) { const walk = o => { for (const k of ['img', 'banner'])
+    if (typeof o[k] === 'string')
+        fn(o, k); (o.ch || []).forEach(walk); }; S.novels.forEach(n => { walk(n); walk(n.root); }); }
+async function flush() {
+    const jobs = [];
+    eachImg((o, k) => { if (o[k].startsWith('data:') && written[imgPath(o, k)] !== o[k])
+        jobs.push([imgPath(o, k), o[k]]); });
+    for (const [p, u] of jobs) {
+        await fsPut(p, await (await fetch(u)).blob());
+        written[p] = u;
+    }
+    await fsPut(DATA, JSON.stringify(S, function (k, v) { return (k === 'img' || k === 'banner') && typeof v === 'string' && v.startsWith('data:') && this.id ? 'file:' + imgPath(this, k) : v; }, 1));
+}
+async function dayBackup(raw) {
+    try {
+        const p = 'backups/novelog-' + today() + '.json';
+        if (!await fsGet(p))
+            await fsPut(p, raw);
+        const [d] = await fsDir(p, true), names = [];
+        for await (const k of d.keys())
+            names.push(k);
+        names.sort().slice(0, -30).forEach(n => d.removeEntry(n));
+    }
+    catch (e) { }
+}
+const dataUrl = f => new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
+async function mount(h) {
+    try {
+        STORE.dir = h;
+        const f = await fsGet(DATA), raw = f ? await f.text() : null;
+        adopt(raw ? JSON.parse(raw) : seed());
+        const files = [];
+        eachImg((o, k) => { if (o[k].startsWith('file:'))
+            files.push([o, k]); });
+        for (const [o, k] of files) {
+            const p = o[k].slice(5), c = await fsGet(p);
+            o[k] = c ? await dataUrl(c) : '';
+            if (o[k])
+                written[p] = o[k];
+        }
+        STORE.mode = 'folder';
+        if (raw)
+            await dayBackup(raw);
+        $('header').style.visibility = '';
+        boot();
+    }
+    catch (e) {
+        STORE.mode = 'none';
+        gate('error', e.message);
+    }
+}
+function gate(kind, msg) {
+    const w = (t, b) => `<div class="panel" style="max-width:540px;margin:40px auto"><h3 style="margin-top:0">${t}</h3>${b}<p>\
+<button class="ghost" onclick="useBrowser()">Use browser storage instead</button></p></div>`;
+    $('#app').innerHTML = kind === 'nosupport'
+        ? w('Folder saving isn’t available in this browser', '<p>Novelog can keep all your data and covers in a normal folder on your computer. This browser has that switched off. In Brave, open <b>brave://flags</b>, turn on “File System Access API”, and restart. Chrome and Edge work without changes.</p>')
+        : kind === 'reconnect'
+            ? w('Reconnect your data folder', `<p>Click to let Novelog use “${esc(pendingDir.name)}” again.</p><p>\
+<button class="btn" onclick="reconnect()">Reconnect</button> <button class="ghost" onclick="chooseDir()">Pick a different folder</button></p>`)
+            : kind === 'error'
+                ? w('Couldn’t open that folder', `<p>${esc(msg)}</p><p>Nothing was changed.</p><p>\
+<button class="btn" onclick="chooseDir()">Choose folder</button></p>`)
+                : w('Choose your data folder', '<p>Make an empty folder first (inside Documents, for example – the browser won’t accept Documents, Desktop or Downloads themselves). Novelog saves your data, cover pictures and daily backups there.</p>\
+<p><button class="btn" onclick="chooseDir()">Choose folder</button></p>');
+}
+async function chooseDir() {
+    try {
+        const h = await showDirectoryPicker({ id: 'novelog', mode: 'readwrite' });
+        await idb('set', 'dir', h);
+        mount(h);
+    }
+    catch (e) {
+        if (e.name !== 'AbortError')
+            gate('error', e.message);
+    }
+}
+async function reconnect() { if (await pendingDir.requestPermission({ mode: 'readwrite' }) === 'granted')
+    mount(pendingDir); }
+function useBrowser() {
+    STORE.mode = 'browser';
+    try {
+        adopt(JSON.parse(localStorage.getItem(K)));
+    }
+    catch (e) {
+        adopt(seed());
+    }
+    $('header').style.visibility = '';
+    boot();
+}
+async function start() {
+    $('header').style.visibility = 'hidden';
+    if (!window.showDirectoryPicker)
+        return gate('nosupport');
+    try {
+        pendingDir = await idb('get', 'dir');
+    }
+    catch (e) { }
+    if (pendingDir && await pendingDir.queryPermission({ mode: 'readwrite' }) === 'granted')
+        return mount(pendingDir);
+    gate(pendingDir ? 'reconnect' : 'choose');
+}
+$('#sv').onclick = () => { if (failed)
+    save(); };
+addEventListener('beforeunload', e => { if (busy || again || failed) {
+    e.preventDefault();
+    e.returnValue = '';
+} });
+
+// Themes: each has an accent colour and a background hue; light and dark palettes are derived from those (Sky is the original, hand-picked).
+// The choice lives in S.pref (saved with the data) and is mirrored to localStorage so the right colours show before the data loads.
+const THEMES = [
+    { id: 'sky', name: 'Sky', acc: '#3db4f2' }, { id: 'violet', name: 'Violet', acc: '#9b7bf5', h: 262 },
+    { id: 'rose', name: 'Rose', acc: '#f0628f', h: 338 }, { id: 'ember', name: 'Ember', acc: '#ee7b30', h: 22 },
+    { id: 'gold', name: 'Gold', acc: '#d9a21b', h: 44 }, { id: 'emerald', name: 'Emerald', acc: '#2fc27e', h: 152 },
+    { id: 'teal', name: 'Teal', acc: '#20b2aa', h: 182 }, { id: 'slate', name: 'Slate', acc: '#8da2b8', h: 215, k: .25 }
+];
+const SKY = {
+    light: { bg: '#edf1f5', card: '#fff', tx: '#2f3f4f', mut: '#7a8ea3', line: '#dde5ee', nav: '#152232', in: '#f3f6f9' },
+    dark: { bg: '#0b1622', card: '#151f2e', tx: '#c3d0de', mut: '#7d8fa3', line: '#22303f', nav: '#0f1a27', in: '#0e1826' }
+};
+const pal = (h, k, d) => { const c = (s, l) => `hsl(${h} ${Math.round(s * k)}% ${l}%)`; return d ? { bg: c(40, 8), card: c(30, 13), tx: c(22, 80), mut: c(12, 58), line: c(25, 20), nav: c(38, 10), in: c(40, 10) } : { bg: c(28, 95), card: '#fff', tx: c(25, 24), mut: c(15, 56), line: c(25, 89), nav: c(40, 15), in: c(30, 97) }; };
+const prefs = () => S.pref || (() => { try {
+    return JSON.parse(localStorage.getItem('novelog.pref'));
+}
+catch (e) { } })() || { theme: 'sky', mode: 'auto' };
+const isDark = p => p.mode === 'dark' || (p.mode !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+const colors = (t, d) => t.id === 'sky' ? SKY[d ? 'dark' : 'light'] : pal(t.h, t.k || 1, d);
+function applyTheme() {
+    const p = prefs(), t = THEMES.find(z => z.id === p.theme) || THEMES[0], d = isDark(p), r = document.documentElement.style;
+    Object.entries(colors(t, d)).forEach(([k, v]) => r.setProperty('--' + k, v));
+    r.setProperty('--acc', t.acc);
+    r.setProperty('--cal', `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23${t.acc.slice(1)}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='3' width='12' height='11' rx='2'/%3E%3Cpath d='M2 7h12M5.5 1.5v3M10.5 1.5v3'/%3E%3C/svg%3E")`);
+    r.colorScheme = d ? 'dark' : 'light';
+}
+function setPref(k, v) {
+    S.pref = { ...prefs(), [k]: v };
+    try {
+        localStorage.setItem('novelog.pref', JSON.stringify(S.pref));
+    }
+    catch (e) { }
+    save();
+    applyTheme();
+    themeM();
+}
+const setTheme = id => setPref('theme', id), setMode = m => setPref('mode', m);
+function themeM() {
+    const p = prefs(), d = isDark(p);
+    $('#m').innerHTML = `<div class="sheet"><div class="mh" style="background:var(--nav)">Theme</div><div class="mb">
+<div class="seg">${[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']].map(([m, n]) => `<button class="${p.mode === m ? 'on' : ''}" onclick="setMode('${m}')">${n}</button>`).join('')}</div>
+<div class="thg">${THEMES.map(t => `<div class="thm${p.theme === t.id ? ' on' : ''}" onclick="setTheme('${t.id}')">\
+<i style="background:linear-gradient(135deg,${t.acc} 50%,${colors(t, d).nav} 50%)"></i><span>${t.name}</span></div>`).join('')}</div>
+<div class="ft"><div class="sp"></div><button class="ghost d" onclick="closeM()">Close</button></div></div></div>`;
+    $('#m').hidden = false;
+}
+$('#th').onclick = themeM;
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+applyTheme();
+
+// Graphs and the Stats page: SVG charts (line, bars), stat tiles + panels (core), period selector, statsV (the Stats screen).
+const fmt = t => new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: '2-digit' });
+function nice(m) { if (m <= 0)
+    return 1; const p = Math.pow(10, Math.floor(Math.log10(m))), f = m / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
+function line(pts) {
+    if (pts.length < 2)
+        return '<div class="empty">Log some chapters with dates to see this chart.</div>';
+    const W = 640, H = 220, L = 42, R = 12, T = 12, B = 26;
+    let x0 = pts[0].t, x1 = pts[pts.length - 1].t;
+    if (x1 === x0)
+        x1 = x0 + 864e5;
+    const ym = nice(Math.max(...pts.map(p => p.y))), X = t => L + (t - x0) / (x1 - x0) * (W - L - R), Y = v => T + (1 - v / ym) * (H - T - B);
+    let g = '';
+    for (let i = 0; i <= 4; i++) {
+        const v = ym * i / 4, y = Y(v);
+        g += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${L - 6}" y="${y + 4}" text-anchor="end">${+v.toFixed(1)}</text>`;
+    }
+    const d = pts.map((p, i) => (i ? 'L' : 'M') + X(p.t).toFixed(1) + ' ' + Y(p.y).toFixed(1)).join(' ');
+    return `<svg viewBox="0 0 ${W} ${H}"><defs><linearGradient id="ga" x1="0" x2="0" y1="0" y2="1">\
+<stop offset="0" stop-color="var(--acc)" stop-opacity=".35"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs>${g}
+<path d="${d} L${X(x1)} ${H - B} L${X(x0)} ${H - B}Z" fill="url(#ga)"/><path d="${d}" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="${L}" y="${H - 6}">${fmt(x0)}</text><text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">${fmt((x0 + x1) / 2)}</text>\
+<text x="${W - R}" y="${H - 6}" text-anchor="end">${fmt(x1)}</text></svg>`;
+}
+function bars(it, col) {
+    if (!it.length || !it.some(i => i.v))
+        return '<div class="empty">Nothing to show yet.</div>';
+    const W = 640, H = 200, L = 10, B = 24, T = 18, ym = Math.max(...it.map(i => i.v)), bw = (W - L * 2) / it.length;
+    return `<svg viewBox="0 0 ${W} ${H}">` + it.map((b, i) => {
+        const h = (H - T - B) * b.v / ym, x = L + i * bw + bw * .15, w = bw * .7;
+        return `<rect x="${x}" y="${H - B - h}" width="${w}" height="${h}" rx="4" fill="${col || 'var(--acc)'}"/>\
+<text x="${x + w / 2}" y="${H - B - h - 5}" text-anchor="middle">${fmtN(b.v)}</text><text x="${x + w / 2}" y="${H - 8}" text-anchor="middle">${b.l}</text>`;
+    }).join('') + '</svg>';
+}
+const perSel = () => `<select id="per"><option value="week" ${ui.per === 'week' ? 'selected' : ''}>Per week</option>\
+<option value="month" ${ui.per === 'month' ? 'selected' : ''}>Per month</option></select>`;
+function core(nid, node) {
+    const all = S.novels, N = nid ? all.find(n => n.id === nid) : null, ev = events(nid, node ? ids(node) : null), sel = N ? [N] : all;
+    const fin = sel.filter(n => n.status === 'completed').length, ch = node ? nR(node) : sel.reduce((a, n) => a + R(n), 0), pg = sel.reduce((a, n) => { const q = ppcMap(n); return a + allL(node || n.root).reduce((z, l) => z + l.read * (q[l.id] || 0), 0); }, 0);
+    const evn = ev.reduce((a, e) => a + e.n, 0), days = new Set(ev.filter(e => e.n > 0).map(e => e.d)).size, byD = {};
+    ev.forEach(e => byD[e.d] = (byD[e.d] || 0) + e.n);
+    const ds = Object.keys(byD).sort();
+    const sts = node && node !== N.root ? [] : sel.map(n => n.st).filter(Boolean).map(x => Date.parse(x));
+    let c = 0;
+    const pos = [];
+    if (ds.length) {
+        const t0 = Date.parse(ds[0]), t1 = Date.parse(ds[ds.length - 1]);
+        pos.push({ t: Math.min(t0, ...sts) - (sts.length ? 0 : 864e5), y: 0 });
+        for (let t = t0; t <= t1; t += 864e5) {
+            c += byD[iso(t)] || 0;
+            pos.push({ t, y: c });
+        }
+    }
+    const key = d => { if (ui.per === 'month')
+        return d.slice(0, 7); const x = new Date(d + 'T00:00:00Z'); x.setUTCDate(x.getUTCDate() - (x.getUTCDay() + 6) % 7); return iso(x); };
+    const sp = {};
+    ev.forEach(e => { const k = key(e.d); sp[k] = (sp[k] || 0) + e.n; });
+    const seq = [];
+    if (ds.length)
+        for (let t = Date.parse(ds[0]); t <= Date.parse(ds[ds.length - 1]); t += 864e5) {
+            const k = key(iso(t));
+            if (seq[seq.length - 1] !== k)
+                seq.push(k);
+        }
+    const spd = seq.map(k => ({ t: Date.parse(ui.per === 'month' ? k + '-01' : k), y: (sp[k] || 0) / (ui.per === 'month' ? 30 : 7) }));
+    const ny = {};
+    S.novels.forEach(n => { if (n.status !== 'completed')
+        return; const d = n.fin || lastD(n), y = d ? d.slice(0, 4) : 'Undated'; ny[y] = (ny[y] || 0) + 1; });
+    const py = {};
+    ev.forEach(e => { const y = e.d.slice(0, 4); py[y] = (py[y] || 0) + e.pg; });
+    const ks = o => Object.keys(o).sort();
+    return `<div class="tiles"><div class="tile"><div class="n">${N ? Math.round(node ? pc(node) : pct(N)) + '%' : fin}</div>\
+<div class="l">${N ? 'Complete' : 'Finished'}</div></div><div class="tile"><div class="n">${Math.round(ch)}</div><div class="l">Chapters read</div>\
+</div><div class="tile"><div class="n">${pg ? fmtN(pg) : '—'}</div><div class="l">Words read</div></div><div class="tile">\
+<div class="n">${days ? (evn / days).toFixed(1) : '0'}</div><div class="l">Ch / active day</div></div></div>
+<div class="panels"><div class="panel w"><h3>Position over time (chapters)</h3>${line(pos)}</div><div class="panel w"><h3>Speed over time (chapters per day, ${ui.per === 'month' ? 'monthly' : 'weekly'} average)</h3>${line(spd)}</div>
+${N ? '' : `<div class="panel">\
+<h3>Novels finished per year</h3>${bars(ks(ny).map(k => ({ l: k, v: ny[k] })), 'var(--ok)')}</div>`}${Object.values(py).some(v => v > 0) ? `<div class="panel ${N ? 'w' : ''}"><h3>Words read per year</h3>${bars(ks(py).map(k => ({ l: k, v: py[k] })), '#c063ff')}</div>` : ''}${N ? '' : cmpH()}</div>`;
+}
+function statsV() { return `<h1>Stats</h1><div class="ctrl"><select id="sel"><option value="">All novels</option>${S.novels.map(n => `<option value="${n.id}" ${ui.sel === n.id ? 'selected' : ''}>${esc(n.t)}</option>`).join('')}</select>${perSel()}</div>` + core(ui.sel, null); }
+
+// Home screen: novel grid (libV), opening / adding / leaving a novel, +1 chapter button, comparison, backup & import window.
+function libV() {
+    const l = S.novels.filter(n => ui.f === 'all' || n.status === ui.f);
+    const TB = [['all', 'All'], ['reading', 'Reading'], ['completed', 'Completed'], ['planned', 'Planned'], ['paused', 'Paused']];
+    return `<h1>My Novels</h1><div class="tabs">${TB.map(t => `<button data-f="${t[0]}" class="${ui.f === t[0] ? 'on' : ''}">${t[1]}</button>`).join('')}</div>` +
+        (l.length ? `<div class="grid">${l.map(n => `<div class="nv" onclick="open_('${n.id}')">\
+<div class="cv" style="background:${n.img ? `url('${n.img}') center/cover` : grad(n.hue)}">\
+<span class="chip">${n.status}</span>${n.status === 'completed' ? '' : `<div class="qb" onclick="event.stopPropagation();bump('${n.id}')">${dR(n.root)}${dT(n.root) ? ' / ' + dT(n.root) : ''} +</div>`}${n.img ? '' : `<span class="ini">${esc(n.t.charAt(0))}</span><span class="ct">${esc(n.t)}</span>`}</div>
+<div class="meta"><b>${esc(n.a || 'Unknown author')}</b>\
+<br>${n.root.ch.length ? n.root.ch.length + ' ' + (n.root.ch.length === 1 ? (n.root.u || 'part') : (n.root.up || 'parts')) + ' · ' : ''}Ch ${dR(n.root)}${dT(n.root) ? ' / ' + dT(n.root) : ''}<div class="bar">\
+<i class="${n.status === 'completed' ? 'ok' : ''}" style="width:${n.status === 'completed' && !mT(n.root) ? 100 : pct(n)}%"></i></div></div></div>`).join('')}</div>` : '<div class="empty">Nothing here yet. Hit + Add.</div>');
+}
+function open_(id) { ui.id = id; ui.v = 'detail'; ui.ed = false; ui.cd = false; ui.tab = 'prog'; ui.ld = ''; PATH = []; render(); scrollTo(0, 0); }
+function addN() { const n = { id: uid(), t: 'New novel', a: '', pages: 0, status: 'reading', log: [], fin: '', st: '', img: '', hue: Math.floor(Math.random() * 360), root: { id: uid(), name: 'New novel', total: 0, read: 0, ch: [] } }; S.novels.push(n); save(); open_(n.id); ui.ed = true; render(); }
+function back() { ui.v = 'lib'; ui.ld = ''; ui.ed = false; render(); scrollTo(0, 0); }
+const cmpH = () => { const r = S.novels.filter(n => n.pages).sort((a, b) => b.pages - a.pages); if (!r.length)
+    return ''; const mx = r[0].pages; return `<div class="panel w"><h3>Book sizes</h3>${r.map(n => { const c = dT(n.root); return `<div class="cr">\
+<span>${esc(n.t)}</span><div class="bar"><i style="width:${n.pages / mx * 100}%"></i></div>\
+<span>${fmtN(n.pages)} words${c ? ` · ${c} ch · ${fmtN(n.pages / c)} words/ch` : ''}</span></div>`; }).join('')}</div>`; };
+function bump(id) { const N = S.novels.find(n => n.id === id); if (!N)
+    return; logAt(N, N.root, dR(N.root) + 1, today()); if (N.status === 'planned')
+    N.status = 'reading'; if (!N.st)
+    N.st = today(); if (mT(N.root) && mR(N.root) >= mT(N.root)) {
+    N.status = 'completed';
+    N.fin = today();
+} save(); render(); }
+function closeM() { $('#m').hidden = true; }
+$('#m').onclick = e => { if (e.target.id === 'm')
+    closeM(); };
+$('#add').onclick = () => addN();
+$('#bk').onclick = () => { $('#m').innerHTML = `<div class="sheet"><div class="mh" style="background:var(--nav)">Backup</div><div class="mb">\
+<p style="margin-top:0;color:var(--mut)">Copy this text to save your data. To restore, paste a backup below and hit Import.</p>\
+<textarea id="bt">${esc(JSON.stringify(S))}</textarea><div class="ft"><div class="sp"></div><button class="ghost d" onclick="closeM()">Close</button>\
+<button class="btn" onclick="imp()">Import</button></div></div></div>`; $('#m').hidden = false; };
+function imp() { try {
+    const d = JSON.parse($('#bt').value);
+    if (!d.novels)
+        throw 0;
+    S = d;
+    save();
+    closeM();
+    render();
+}
+catch (e) {
+    alert('That does not look like a valid backup.');
+} }
+
+// Input widgets: number steppers, calendar popup, date typing, scroll/focus keeping between redraws.
+let LAST = null;
+document.addEventListener('pointerdown', e => { LAST = e.target.closest ? e.target.closest('input,select,button,a,label') : null; }, true);
+const SQ = 'input,select,button,a,label', sig = el => el.tagName + (el.type || '') + (el.getAttribute('onchange') || el.getAttribute('onclick') || el.id || el.textContent || '').slice(0, 90);
+function nums(root) {
+    root.querySelectorAll('input[type=number]').forEach(i => {
+        if (i.parentNode.classList.contains('ns'))
+            return;
+        const w = document.createElement('span');
+        w.className = 'ns';
+        i.parentNode.insertBefore(w, i);
+        w.appendChild(i);
+        const s = document.createElement('span');
+        s.className = 'st';
+        [['up', 1], ['dn', -1]].forEach(([c, d]) => { const b = document.createElement('button'); b.type = 'button'; b.tabIndex = -1; b.className = c; b.onmousedown = e => e.preventDefault(); b.onclick = () => { d > 0 ? i.stepUp() : i.stepDown(); i.dispatchEvent(new Event('change', { bubbles: true })); }; s.appendChild(b); });
+        w.appendChild(s);
+    });
+}
+const MN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+let CAL = null, CI = null, CY = 0, CM = 0;
+function closeCal() { if (CAL)
+    CAL.remove(); CAL = null; CI = null; }
+function drawCal() {
+    const sel = nd(CI.value), t = today(), st = new Date(Date.UTC(CY, CM, 1)).getUTCDay();
+    let h = `<div class="ch"><button type="button" data-a="py">«</button><button type="button" data-a="pm">‹</button><b>${MN[CM]} ${CY}</b>\
+<button type="button" data-a="nm">›</button><button type="button" data-a="ny">»</button></div><div class="cg">${[...'SMTWTFS'].map(d => `<i>${d}</i>`).join('')}`;
+    for (let i = 0; i < 42; i++) {
+        const d = new Date(Date.UTC(CY, CM, 1 - st + i)), k = iso(d.getTime());
+        h += `<button type="button" data-d="${k}" class="${d.getUTCMonth() !== CM ? 'o ' : ''}${k === sel ? 's ' : ''}${k === t ? 't' : ''}">${d.getUTCDate()}</button>`;
+    }
+    CAL.innerHTML = h + `</div><div class="cf"><button type="button" data-a="today">Today</button><button type="button" data-a="clear">Clear</button></div>`;
+}
+function calPick(v) { const i = CI; i.value = us(v); closeCal(); i.dispatchEvent(new Event('change', { bubbles: true })); i.blur(); }
+function openCal(i) {
+    closeCal();
+    CI = i;
+    const v = nd(i.value), d = v ? new Date(v + 'T00:00:00Z') : new Date();
+    CY = d.getUTCFullYear();
+    CM = d.getUTCMonth();
+    CAL = document.createElement('div');
+    CAL.id = 'cal';
+    document.body.appendChild(CAL);
+    drawCal();
+    const r = i.getBoundingClientRect();
+    CAL.style.left = Math.max(8, Math.min(r.left + scrollX, scrollX + innerWidth - 300)) + 'px';
+    CAL.style.top = (r.bottom + scrollY + 6) + 'px';
+    CAL.onmousedown = e => e.preventDefault();
+    CAL.onclick = e => { const b = e.target.closest('button'); if (!b)
+        return; const a = b.dataset.a; if (b.dataset.d)
+        calPick(b.dataset.d);
+    else if (a === 'today')
+        calPick(today());
+    else if (a === 'clear')
+        calPick('');
+    else {
+        if (a === 'pm') {
+            CM--;
+            if (CM < 0) {
+                CM = 11;
+                CY--;
+            }
+        }
+        else if (a === 'nm') {
+            CM++;
+            if (CM > 11) {
+                CM = 0;
+                CY++;
+            }
+        }
+        else if (a === 'py')
+            CY--;
+        else
+            CY++;
+        drawCal();
+    } };
+}
+function dates(root) {
+    if (window.matchMedia && matchMedia('(pointer:coarse)').matches)
+        return;
+    root.querySelectorAll('input[type=date]').forEach(i => {
+        i.type = 'text';
+        i.value = us(nd(i.value));
+        i.placeholder = 'MM-DD-YYYY';
+        i.maxLength = 10;
+        i.inputMode = 'numeric';
+        i.autocomplete = 'off';
+        i.classList.add('dt');
+        i.addEventListener('focus', () => openCal(i));
+        i.addEventListener('click', () => { if (CI !== i)
+            openCal(i); });
+        i.addEventListener('blur', () => setTimeout(() => { if (CI === i)
+            closeCal(); }, 120));
+        i.addEventListener('keydown', e => { if (e.key === 'Escape')
+            closeCal(); if (e.key === 'Enter')
+            i.blur(); });
+        i.addEventListener('blur', () => { const v = nd(i.value); if (v)
+            i.value = us(v); });
+        i.addEventListener('input', e => { if (!(e.inputType && e.inputType.startsWith('delete'))) {
+            const f = fmtD(i.value);
+            if (f !== i.value)
+                i.value = f;
+        } if (CI === i) {
+            const v = nd(i.value);
+            if (v) {
+                const d = new Date(v + 'T00:00:00Z');
+                CY = d.getUTCFullYear();
+                CM = d.getUTCMonth();
+                drawCal();
+            }
+        } });
+    });
+}
+document.addEventListener('pointerdown', e => { if (CAL && !CAL.contains(e.target) && e.target !== CI)
+    closeCal(); }, true);
+
+// Enter commits a number field: tell render() not to wait before redrawing
+document.addEventListener('keydown', e => { if (e.key === 'Enter') { ENT = 1; setTimeout(() => ENT = 0); } }, true);
+// Remember which field just committed a change (for the length of this event) so render() can tell "clicked into another box" from "still editing"
+document.addEventListener('change', e => { CH = e.target; setTimeout(() => CH = null); }, true);
+
+// Picture intake. Covers are 400x600 and banners 1900x400. A picture whose shape already matches is just resized;
+// any other shape opens a crop window (drag the frame, zoom with the slider or mouse wheel) so you pick the part that shows.
+let CR = null;
+const cropDraw = (im, sx, sy, sw, sh, W, H) => {
+    const w = Math.min(W, Math.round(sw)), c = document.createElement('canvas');
+    c.width = w;
+    c.height = Math.round(w * H / W);
+    c.getContext('2d').drawImage(im, sx, sy, sw, sh, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', H < 500 ? .82 : .8);
+};
+function fitImg(f, W, H, cb) {
+    if (!f)
+        return;
+    const r = new FileReader();
+    r.onload = () => { const im = new Image(); im.onload = () => { if (Math.abs(im.width / im.height / (W / H) - 1) < .02)
+        cb(cropDraw(im, 0, 0, im.width, im.height, W, H));
+    else
+        cropper(im, W, H, cb); }; im.src = r.result; };
+    r.readAsDataURL(f);
+}
+function cropper(im, W, H, cb) {
+    const maxW = Math.min(700, innerWidth - 80), maxH = Math.max(160, Math.min(440, innerHeight - 300)), s = Math.min(maxW / im.width, maxH / im.height, 1), dw = im.width * s, dh = im.height * s, max = Math.min(dw, dh * W / H);
+    CR = { im, W, H, cb, s, dw, dh, max, w: max, x: (dw - max) / 2, y: (dh - max * H / W) / 2 };
+    $('#m').innerHTML = `<div class="sheet wide">\
+<div class="mh" style="background:var(--nav)">Crop ${W > H * 2 ? 'banner' : 'cover'} · ${W} × ${H}</div><div class="mb">
+<div class="cst" id="cst" style="width:${dw}px;height:${dh}px"><img src="${im.src}"><div class="cbx" id="cbx"></div></div>
+<div class="crow"><label>Zoom</label><input type="range" id="czm" min="15" max="100" value="100"></div>
+<div class="ft"><div class="sp"></div><button class="ghost d" onclick="cropNo()">Cancel</button>\
+<button class="btn" onclick="cropOk()">Use this crop</button></div></div></div>`;
+    $('#m').hidden = false;
+    const box = $('#cbx');
+    box.onpointerdown = e => { box.setPointerCapture(e.pointerId); CR.dx = e.clientX - CR.x; CR.dy = e.clientY - CR.y; };
+    box.onpointermove = e => { if (box.hasPointerCapture(e.pointerId)) {
+        CR.x = e.clientX - CR.dx;
+        CR.y = e.clientY - CR.dy;
+        cropPlace();
+    } };
+    $('#czm').oninput = e => cropZoom(+e.target.value);
+    $('#cst').onwheel = e => { e.preventDefault(); const z = $('#czm'); z.value = +z.value - Math.sign(e.deltaY) * 4; cropZoom(+z.value); };
+    cropPlace();
+}
+function cropZoom(p) { const c = CR, cx = c.x + c.w / 2, cy = c.y + c.w * c.H / c.W / 2; c.w = c.max * p / 100; c.x = cx - c.w / 2; c.y = cy - c.w * c.H / c.W / 2; cropPlace(); }
+function cropPlace() {
+    const c = CR, h = c.w * c.H / c.W;
+    c.x = Math.max(0, Math.min(c.dw - c.w, c.x));
+    c.y = Math.max(0, Math.min(c.dh - h, c.y));
+    Object.assign($('#cbx').style, { left: c.x + 'px', top: c.y + 'px', width: c.w + 'px', height: h + 'px' });
+}
+function cropOk() { const c = CR; closeM(); document.querySelectorAll('input[type=file]').forEach(i => i.value = ''); c.cb(cropDraw(c.im, c.x / c.s, c.y / c.s, c.w / c.s, c.w * c.H / c.W / c.s, c.W, c.H)); }
+function cropNo() { closeM(); document.querySelectorAll('input[type=file]').forEach(i => i.value = ''); }
+
+// Novel / section page: everything that DRAWS it (HTML builders). The things its buttons DO live in actions.js.
+// ===== Novel / section page. detV() = the whole screen; each block below is one piece of it, so edit one piece at a time =====
+function detV() {
+    const N = NV();
+    if (!N) {
+        ui.v = 'lib';
+        return libV();
+    }
+    const tr = trail(), x = tr[tr.length - 1], ed = ui.ed;
+    return `${detBanner(N)}<div class="dp${N.banner ? ' hb' : ''}">${detCover(N, x)}
+<div>${detTitle(N, tr, x)}
+${detStats(N, x)}
+${brk(N)}${detBar(x)}
+${ed ? detEdit(N, x) : ''}</div></div>
+${detTabs()}
+${ui.tab === 'stats' ? `<div class="ctrl">${perSel()}</div>${core(N.id, x)}` : detCols(N, x, ed)}`;
+}
+const detBanner = N => N.banner ? `<div class="bnr" style="background-image:url('${N.banner}')"></div>` : '';
+// cover: the section's own picture, else the book's cover, else a gradient with the first letter
+const detCover = (N, x) => {
+    const ci = (PATH.length && x.img) || N.img;
+    return `<div class="cover" style="background:${ci ? `url('${ci}') center/cover` : grad(N.hue)}">${ci ? '' : `<span class="ini">${esc((N.t || '?').charAt(0))}</span>`}</div>`;
+};
+// breadcrumb, status chip, title, author
+const detTitle = (N, tr, x) => `${PATH.length ? `<div class="crumb">${tr.map((c, i) => i < tr.length - 1 ? `<a onclick="go(${i})">${esc(i ? c.name : (N.t || 'Novel'))}</a> › ` : esc(i ? c.name : (N.t || 'Novel'))).join('')}</div>` : ''}<div>\
+<span class="chip2">${PATH.length ? (pc(x) >= 100 ? 'finished' : nR(x) ? 'in progress' : 'not started') : N.status}</span></div>\
+<h1 class="tt">${esc(PATH.length ? x.name : (N.t || 'Untitled'))}</h1><div class="au">${PATH.length ? esc(N.t) + ' · ' : ''}${esc(N.a || 'Unknown author')}</div>`;
+// numbers row: chapters read, chapters, %, dates, words
+const detStats = (N, x) => {
+    const r = R(N);
+    return `<div class="stats"><div><b>${PATH.length ? nR(x) : r}</b><span>chapters read</span></div><div><b>${dT(x) || '?'}</b><span>chapters</span>\
+</div><div><b>${Math.round(pc(x))}%</b><span>complete</span></div>${!PATH.length && r > mR(N.root) ? `<div><b>${r - mR(N.root)}</b>\
+<span>extra read</span></div>` : ''}<div><b>${PATH.length ? nodeSt(N, x) || '—' : N.st || '—'}</b><span>started</span></div><div>\
+<b>${PATH.length ? (pc(x) >= 100 ? finD(N, x) || '—' : '—') : N.fin || '—'}</b><span>finished</span></div>${(PATH.length ? x.pg : N.pages) ? `<div>\
+<b>${fmtN(PATH.length ? x.pg : N.pages)}</b><span>words</span></div><div><b>${fmtN((PATH.length ? x.pg : N.pages) / (dT(x) || 1))}</b>\
+<span>words / chapter</span></div>` : ''}</div>`;
+};
+const detBar = x => `<div class="bar big"><i class="${pc(x) >= 100 ? 'ok' : ''}" style="width:${pc(x)}%"></i></div>`;
+const detTabs = () => `<div class="tabs2"><button class="${ui.tab === 'stats' ? '' : 'on'}" onclick="tab('prog')">Progress</button>\
+<button class="${ui.tab === 'stats' ? 'on' : ''}" onclick="tab('stats')">Stats</button></div>`;
+// edit panel at the top: book fields, cover, banner, delete
+const fld = (l, k, v, ty) => `<div><label>${l}</label>\
+<input ${ty ? `type="${ty}"` : ''} value="${esc(v)}" ${ty === 'date' ? `onblur="dSet('${k}',this)" onkeydown="if(event.key==='Enter')this.blur()"` : `onchange="set('${k}',this.value,1)"`}></div>`;
+const detEdit = (N, x) => `<div class="panel ef">${fld('Title', 't', N.t)}${fld('Author', 'a', N.a)}${fld('Total words', 'pages', N.pages || '', 'number')}<div>\
+<label>Status</label>\
+<select onchange="set('status',this.value)">${['reading', 'completed', 'planned', 'paused'].map(s => `<option ${N.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>${fld('Started', 'st', N.st, 'date')}${fld('Finished', 'fin', N.fin, 'date')}
+${PATH.length ? picIn('Cover image · this section', `secImg('${x.id}',this.files[0])`, x.img, `noSecImg('${x.id}')`, '400 × 600') : picIn('Cover image', 'pick(this.files[0])', N.img, 'noImg()', '400 × 600')}
+${picIn('Banner image · whole book', 'pickBanner(this.files[0])', N.banner, 'noBanner()', '1900 × 400')}
+<div style="align-self:end"><button class="ghost red" onclick="delN()">${ui.cd ? 'Click again to delete' : 'Delete novel'}</button></div></div>`;
+// Progress tab: left panel = chapters / sections, right panel = log form + history
+function detCols(N, x, ed) {
+    const leaf = !x.ch.length, nm = id => { const q = fnd(N.root, id); return q && q !== N.root ? ' · ' + q.name : ''; };
+    return `<div class="cols"><div class="panel">
+${detSecName(x, ed)}
+${detTotalIn(x, ed, leaf)}${chk(x)}
+<div class="sh"><h3>${leaf ? 'Chapters' : esc(x.up || 'Sections') + ' · ' + x.ch.length}</h3>\
+<span class="cnt">${dR(x)} / ${dT(x) || '?'} chapters${dT(x) && dR(x) > dT(x) ? ` <em class="ov">+${dR(x) - dT(x)} over</em>` : ''}</span></div>
+${leaf ? detLeaf(x, ed) : detList(N, x, ed)}
+${detAddBox(x, ed, leaf)}</div>
+<div class="panel">${detLog(N, x, leaf)}
+<div class="hist" style="margin-top:18px">${hist(N, ed, nm)}</div></div></div>`;
+}
+const detSecName = (x, ed) => ed && PATH.length ? `<div style="max-width:320px;margin-top:14px">${inpN(x.id, 'Section name', 'name', x.name)}</div>` : '';
+const detTotalIn = (x, ed, leaf) => ed && !leaf ? `<div style="max-width:320px;margin-top:14px"><label>Total chapters (optional)</label>\
+<input type="number" min="0" value="${x.dt || ''}" onchange="setNode('${x.id}','dt',+this.value||0)"></div>` : '';
+// a section with no children: its own chapter count (edit) or a hint
+const detLeaf = (x, ed) => ed ? `<div style="max-width:200px">\
+<label>Chapters in this ${PATH.length ? 'section' : 'novel'}${x.auto ? ' (worked out from the total above)' : ''}</label>\
+<input type="number" min="0" value="${x.total || ''}" onchange="setNode('${x.id}','total',+this.value||0)"></div>` : '<div class="empty" style="padding:24px 0">Nothing inside yet. Hit Edit to divide this into volumes, arcs, episodes, whatever you like.</div>';
+// a section with children: edit rows or cards
+const detList = (N, x, ed) => `<div class="${ed ? 'el' : 'sg'}">${ed ? detListHead(x) : ''}${x.ch.map(c => ed ? rowEdit(N, c) : rowCard(N, c)).join('')}</div>`;
+const detListHead = x => '<div class="eh"><span>Name</span><span>Chapters</span><span>Ends at ch.</span><span></span></div>' + (x.ch.some(c => c.auto) ? '<div class="cnt" style="margin:-2px 0 2px">Dashed numbers are worked out for you. Type your own to lock one in, or clear it to go back to automatic.</div>' : '');
+// one section as an editable row (+ its "more options" fold)
+const rowEdit = (N, c) => `<div class="er"><div class="er1"><input value="${esc(c.name)}" onchange="setNode('${c.id}','name',this.value,1)">\
+<input class="tin${c.auto ? ' ai' : ''}" type="number" min="0" placeholder="${mT(c) || ''}" value="${c.ch.length ? (c.dt || '') : (c.total || '')}" onchange="setNode('${c.id}','${c.ch.length ? 'dt' : 'total'}',+this.value||0)">${c.x ? '<span>\
+</span>' : `<input type="number" min="0" ${c.auto ? 'class="ai"' : ''} value="${endv(N, c)}" onchange="setEnd('${c.id}',+this.value||0)">`}<button class="ghost d" onclick="enter('${c.id}')">Open ›</button></div>
+<details class="mo" ${ui.op && ui.op[c.id] ? 'open' : ''} ontoggle="ui.op=ui.op||{};ui.op['${c.id}']=this.open"><summary>\
+<span>${dR(c)} / ${dT(c) || '?'} ch${dT(c) && dR(c) > dT(c) ? ` · +${dR(c) - dT(c)} over` : ''}${c.auto ? ' · worked out' : ''}</span>\
+<span class="mt"></span></summary><div class="er2"><div><label>Finished on</label>\
+<input type="date" value="${finD(N, c)}" onblur="dFin('${c.id}',this)" onkeydown="if(event.key==='Enter')this.blur()"></div><div><label>Words</label>\
+<input type="number" min="0" placeholder="optional" value="${c.pg || ''}" onchange="setNode('${c.id}','pg',+this.value||0)"></div>
+<label class="xk">\
+<input type="checkbox" ${c.x ? 'checked' : ''} onchange="setNode('${c.id}','x',this.checked)">Side story</label>${c.x ? `<label class="xk">\
+<input type="checkbox" ${c.xc ? 'checked' : ''} onchange="setNode('${c.id}','xc',this.checked)">Included in total chapters</label>` : ''}<a onclick="rmC('${c.id}')">Remove this section</a>\
+</div></details></div>`;
+// one section as a card (picture, name, progress)
+const rowCard = (N, c) => `<div class="sc${c.x ? ' x' : ''}" onclick="enter('${c.id}')">\
+<div class="sth" style="background-image:${c.img || N.img ? `url('${c.img || N.img}')` : grad(N.hue)}"></div><div class="sb">\
+<b>${esc(c.name)}</b>${c.x ? '<em class="xt">Side story</em>' : ''}<span>${dR(c)} / ${dT(c) || '?'} ch${c.auto ? ' · auto' : ''}${dT(c) && dR(c) > dT(c) ? ` <em class="ov">+${dR(c) - dT(c)} over</em>` : ''}</span>\
+<div class="bar"><i class="${pc(c) >= 100 ? 'ok' : ''}" style="width:${pc(c)}%"></i></div></div></div>`;
+// "Divide into sections" / "Add or rename sections" fold
+const detAddBox = (x, ed, leaf) => ed ? `<details class="mo add" ${leaf || (ui.op && ui.op.add) ? 'open' : ''} ontoggle="ui.op=ui.op||{};ui.op.add=this.open">\
+<summary><span>${leaf ? 'Divide into sections' : 'Add or rename sections'}</span><span class="mt"></span></summary><div class="dv2">\
+<input id="bn" type="number" min="1" placeholder="How many"><input id="bs" placeholder="Name, e.g. Volume" value="${esc(x.u || '')}">\
+<input id="bp" placeholder="Plural, e.g. Volumes" value="${esc(x.up || '')}"></div><div class="dvb">\
+<button class="btn" onclick="divide()">${leaf ? 'Divide' : '+ Add'}</button>\
+<button class="ghost d" onclick="addX()">+ Side story</button>${leaf ? '' : '<button class="ghost d" onclick="renameAll()">Rename all</button>'}</div></details>` : '';
+// right panel: log reading / log a break form
+const detLog = (N, x, leaf) => `<div class="seg"><button class="${ui.lm === 'br' ? '' : 'on'}" onclick="lmode('ch')">Log reading</button>\
+<button class="${ui.lm === 'br' ? 'on' : ''}" onclick="lmode('br')">Log a break</button></div>${ui.lm === 'br' ? `<div class="lr"><div>\
+<label>From</label><input id="b_f" type="date" value="${today()}"></div><div><label>To (optional)</label><input id="b_t" type="date"></div></div>\
+<button class="btn" style="width:100%" onclick="logBr()">Add break</button>\
+<div class="cnt" style="margin-top:10px">Leave "To" empty if you're still on a break. It ends at your next logged chapter.</div>` : `<label style="margin-bottom:10px;text-transform:none;font-size:13px;letter-spacing:0">${PATH.length ? esc(x.name) : esc(N.t)}</label>\
+<div class="lr"><div><label>Read up to chapter</label><input id="l_c" type="number" min="0" value="${leaf ? x.read : dR(x)}"></div><div>\
+<label>Date</label><input id="l_d" type="date" value="${ui.ld || today()}"></div></div><button class="btn" style="width:100%" onclick="logIt()">Log</button>${leaf ? '' : `<div class="cnt" style="margin-top:10px">Counts through the ${esc((x.up || 'sections').toLowerCase())} in order; extras are skipped.</div>`}`}`;
+const inpN = (id, l, k, v) => `<label>${l}</label><input value="${esc(v)}" onchange="setNode('${id}','${k}',this.value,1)">`;
+const brk = N => { const b = [...(N.br || []).filter(x => x.f), ...(N.status === 'paused' && N.pz ? [{ f: N.pz, t: '' }] : [])]; return b.length ? `<div class="chips" style="margin:0 0 12px">${b.map(x => `<span>⏸ ${x.f} → ${x.t || 'ongoing'}${x.t ? ' · ' + Math.max(0, Math.round((Date.parse(x.t) - Date.parse(x.f)) / 864e5)) + ' days' : ''}</span>`).join('')}</div>` : ''; };
+const nodeSt = (N, x) => { const q = ids(x); return N.log.filter(l => q.includes(l.p)).map(l => l.d).sort()[0] || ''; };
+// pictures: novel cover (img), novel banner, and an optional picture per section (falls back to the novel cover)
+const picIn = (label, on, has, off, hint) => `<div><label>${label}</label>\
+<input type="file" accept="image/*" onchange="${on}">${has ? `<a style="color:#e85d75;cursor:pointer;font-size:12px" onclick="${off}">remove</a>` : ''}<div class="hint">${hint}</div></div>`;
+function chk(x) {
+    if (!x.ch.length || !x.dt)
+        return '';
+    const f = cnt, m = x.ch.filter(f), u = m.filter(c => un(c, f)), k = m.filter(c => !un(c, f)).reduce((a, c) => a + tot(c, f), 0);
+    let t = '';
+    if (!u.length && k !== x.dt)
+        t = k < x.dt ? `${x.dt - k} chapter${x.dt - k > 1 ? 's' : ''} missing. Fix a volume's count, or add a side story and switch on "Included in total chapters".` : `Sections add up to ${k}, which is ${k - x.dt} more than the total of ${x.dt}.`;
+    else if (u.length && x.dt <= k)
+        t = 'The other sections already add up to the total.';
+    return t ? `<div class="warn">${t}</div>` : '';
+}
+const hist = (N, ed, nm) => { const it = [...N.log.map(l => ({ d: l.d, k: 1, h: `<div><span>${l.d}${esc(nm(l.p))}</span>\
+<span>Ch ${l.c}${ed ? `<a onclick="rmLog('${l.d}',${l.c},'${l.p || ''}')">✕</a>` : ''}</span>\
+</div>` })), ...(N.br || []).map((b, i) => ({ d: b.f, k: 0, h: `<div><span>⏸ Break · ${b.f} → ${b.t || 'ongoing'}</span>\
+<span>${ed ? `<a onclick="rmBr(${i})">✕</a>` : ''}</span></div>` }))].sort((a, b) => b.d.localeCompare(a.d) || b.k - a.k); return it.length ? it.map(x => x.h).join('') : '<span style="color:var(--mut)">No dated entries yet.</span>'; };
+
+// Novel / section page actions: edit mode, sections, fields, breaks, logging, pictures, delete. (The HTML lives in detail.js.)
+function tab(t) { ui.tab = t; render(); }
+function rmBr(i) { NV().br.splice(i, 1); save(); render(); }
+function tgl() { ui.ed = !ui.ed; ui.cd = false; render(); }
+function go(i) { PATH = PATH.slice(0, i); render(); }
+function enter(id) { PATH.push(id); render(); scrollTo(0, 0); }
+function set(k, v, nr) { const N = NV(), o = N.status; if (k === 'pages')
+    v = +v || 0; N[k] = v; if (k === 'status') {
+    if (v === 'paused' && o !== 'paused')
+        N.pz = today();
+    if (o === 'paused' && v !== 'paused' && N.pz) {
+        (N.br = N.br || []).push({ f: N.pz, t: today() });
+        N.pz = '';
+    }
+} if (k === 't')
+    N.root.name = v; if (k === 'status' && v === 'completed') {
+    fa(N.root);
+    if (!N.fin)
+        N.fin = lastD(N);
+} save(); if (!nr)
+    render(); }
+function setNode(id, k, v, nr) { const N = NV(), q = fnd(N.root, id); if (k === 'name' && !String(v).trim())
+    return; q[k] = v; if (k === 'total' || k === 'dt') {
+    q.auto = false;
+    delete q.en;
+} if (['total', 'dt', 'x', 'ti', 'xc'].includes(k)) {
+    fit(N);
+    settle(N);
+} save(); if (!nr)
+    render(); }
+function divide() {
+    const x = trail().pop(), N = NV(), n = Math.min(60, +gv('bn') || (x.ch.length ? 1 : 2)), u = gv('bs').trim() || 'Part', b = x.ch.length;
+    x.u = u;
+    x.up = gv('bp').trim() || u + 's';
+    for (let j = 1; j <= n; j++)
+        x.ch.push({ id: uid(), name: u + ' ' + (b + j), total: 0, read: 0, ch: [] });
+    if (!b) {
+        const f = x.ch[0];
+        f.read = x.read;
+        x.dt = x.total;
+        N.log.forEach(l => { if (l.p === x.id)
+            l.p = f.id; });
+        x.total = x.read = 0;
+    }
+    fit(N);
+    settle(N);
+    save();
+    render();
+}
+function rmC(id) { const x = trail().pop(), N = NV(), c = x.ch.find(z => z.id === id), d = ids(c); N.log = N.log.filter(l => !d.includes(l.p)); x.ch = x.ch.filter(z => z.id !== id); fit(N); settle(N); save(); render(); }
+const setImg = (o, k, v) => { o[k] = v; save(); render(); };
+const pick = f => fitImg(f, 400, 600, u => setImg(NV(), 'img', u)), pickBanner = f => fitImg(f, 1900, 400, u => setImg(NV(), 'banner', u));
+const secImg = (id, f) => fitImg(f, 400, 600, u => setImg(fnd(NV().root, id), 'img', u));
+const noImg = () => setImg(NV(), 'img', ''), noBanner = () => setImg(NV(), 'banner', ''), noSecImg = id => setImg(fnd(NV().root, id), 'img', '');
+function renameAll() { const x = trail().pop(), u = gv('bs').trim(); if (!u)
+    return; x.u = u; x.up = gv('bp').trim() || u + 's'; let i = 0; x.ch.forEach(c => { if (!c.x)
+    c.name = u + ' ' + (++i); }); save(); render(); }
+function lmode(m) { ui.lm = m; render(); }
+function logBr() { const N = NV(), f = nd(gv('b_f')); if (!f)
+    return; (N.br = N.br || []).push({ f, t: nd(gv('b_t')) }); save(); render(); }
+function addX() {
+    const x = trail().pop(), N = NV();
+    if (!x.ch.length) {
+        const f = { id: uid(), name: 'Main story', total: x.total, read: x.read, ch: [] };
+        N.log.forEach(l => { if (l.p === x.id)
+            l.p = f.id; });
+        x.dt = x.dt || x.total;
+        x.total = x.read = 0;
+        x.ch.push(f);
+    }
+    x.ch.push({ id: uid(), name: 'Side Story ' + (x.ch.filter(c => c.x).length + 1), total: 0, read: 0, ch: [], x: true });
+    fit(N);
+    settle(N);
+    save();
+    render();
+}
+function logIt() {
+    const N = NV(), x = trail().pop(), c = +gv('l_c'), d = nd(gv('l_d')) || today();
+    if (isNaN(c))
+        return;
+    logAt(N, x, c, d);
+    ui.ld = d;
+    if (N.status === 'planned')
+        N.status = 'reading';
+    if (!N.st || d < N.st)
+        N.st = d;
+    if (mT(N.root) && mR(N.root) >= mT(N.root)) {
+        N.status = 'completed';
+        N.fin = d;
+    }
+    save();
+    render();
+}
+function rmLog(d, c, p) { const N = NV(), i = N.log.findIndex(l => l.d === d && l.c === c && (l.p || '') === p); if (i > -1)
+    N.log.splice(i, 1); const r = N.log.filter(l => l.p === p).sort((a, b) => a.d.localeCompare(b.d) || a.c - b.c).pop(), q = fnd(N.root, p); if (q && !q.ch.length)
+    q.read = r ? (q.total ? Math.min(r.c, q.total) : r.c) : 0; fixLogs(N); settle(N); save(); render(); }
+function delN() { if (!ui.cd) {
+    ui.cd = true;
+    render();
+    return;
+} S.novels = S.novels.filter(n => n.id !== ui.id); save(); back(); }
+
+// Redraw engine and startup: render (keeps scroll/focus), render0 (chooses the screen, wires header), boot (cleans loaded data), start().
+let RT = 0, ENT = 0, CH = null;
+function render(f) {
+    const a = $('#app'), y = scrollY, ac = document.activeElement, el = ac && ac !== document.body && a.contains(ac) ? ac : (LAST && a.contains(LAST) ? LAST : null);
+    const isN = el && (el.type === 'number' || (el.closest && el.closest('.ns')));
+    // A committed change (Enter, or clicking from one number box into another) redraws now; only steppers / typing wait.
+    const ns = el && el.closest && el.closest('.ns'), moved = !!(CH && el && el.tagName === 'INPUT' && el !== CH && ns !== CH.closest('.ns'));
+    if (isN && !f && !ENT && !moved) {
+        clearTimeout(RT);
+        RT = setTimeout(() => render(1), 450);
+        return;
+    }
+    clearTimeout(RT);
+    let k = '', t = 0;
+    if (el && !isN && (el.type === 'checkbox' || /^(BUTTON|SELECT|A|LABEL)$/.test(el.tagName))) {
+        k = sig(el);
+        t = el.getBoundingClientRect().top;
+    }
+    const fi = moved ? [...a.querySelectorAll('input')].indexOf(el) : -1;
+    a.style.minHeight = a.offsetHeight + 'px';
+    closeCal();
+    render0();
+    nums(a);
+    dates(a);
+    scrollTo(0, y);
+    const e3 = fi >= 0 && a.querySelectorAll('input')[fi];
+    if (e3) {
+        e3.focus({ preventScroll: true });
+        e3.select();
+    }
+    if (k) {
+        const e2 = [...a.querySelectorAll(SQ)].find(z => sig(z) === k);
+        if (e2)
+            scrollTo(0, scrollY + e2.getBoundingClientRect().top - t);
+    }
+    a.style.minHeight = '';
+}
+function render0() {
+    document.querySelectorAll('header nav button').forEach(b => b.classList.toggle('on', b.dataset.v === (ui.v === 'detail' ? 'lib' : ui.v)));
+    const dt = ui.v === 'detail';
+    $('#hd').innerHTML = dt ? `<button class="btn" onclick="tgl()">${ui.ed ? 'Done' : 'Edit'}</button>` : '';
+    $('#add').style.display = $('#bk').style.display = dt ? 'none' : '';
+    $('#app').className = dt ? 'w' + (NV() && NV().banner ? ' hb' : '') : '';
+    $('#app').innerHTML = ui.v === 'lib' ? libV() : ui.v === 'stats' ? statsV() : detV();
+    document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { ui.f = b.dataset.f; render(); });
+    const s = $('#sel');
+    if (s)
+        s.onchange = () => { ui.sel = s.value; render(); };
+    const p = $('#per');
+    if (p)
+        p.onchange = e => { ui.per = e.target.value; render(); };
+}
+document.querySelectorAll('header nav button').forEach(b => b.onclick = () => { ui.v = b.dataset.v; if (ui.v === 'stats')
+    ui.sel = ''; render(); });
+function boot() { S.novels.forEach(n => { n.log.forEach(l => l.d = nd(l.d)); n.st = nd(n.st); n.fin = nd(n.fin); (n.br || []).forEach(b => { b.f = nd(b.f); b.t = nd(b.t); }); fixLogs(n); const L = lv(n.root); L.forEach((l, i) => { if (i < L.length - 1 && l.total && l.read > l.total)
+    l.read = Math.min(l.total, last(n, l.id)); }); fit(n); settle(n); }); save(); render(); }
+start();
+</script></body></html>
