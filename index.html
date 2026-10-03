@@ -588,7 +588,9 @@ async function flush() {
         await fsPut(p, await (await fetch(u)).blob());
         written[p] = u;
     }
+    await putOriginals();
     await fsPut(DATA, JSON.stringify(S, function (k, v) { return (k === 'img' || k === 'banner') && typeof v === 'string' && v.startsWith('data:') && this.id ? 'file:' + imgPath(this, k) : v; }, 1));
+    await cleanOriginals();
 }
 async function dayBackup(raw) {
     try {
@@ -983,8 +985,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter') { ENT = 1; se
 // Remember which field just committed a change (for the length of this event) so render() can tell "clicked into another box" from "still editing"
 document.addEventListener('change', e => { CH = e.target; setTimeout(() => CH = null); }, true);
 
-// Picture intake. Covers are 2:3 and banners 19:4 (shape only; W x H below are the shape, not a size limit). Pictures keep full resolution;
-// any other shape opens a crop window (drag the frame, zoom with the slider or mouse wheel) so you pick the part that shows.
+// Picture intake. Covers are 2:3 and banners 19:4 (shape only; W x H below are the shape, not a size limit). Pictures keep full resolution; a right-shaped JPEG is kept byte-for-byte (no re-encode);
+// any other shape opens a crop window (the original is kept for re-crop; drag the frame, zoom with the slider or mouse wheel) so you pick the part that shows.
 let CR = null;
 const cropDraw = (im, sx, sy, sw, sh, W, H) => {
     const w = Math.round(sw), c = document.createElement('canvas');
@@ -998,12 +1000,12 @@ function fitImg(f, W, H, cb) {
         return;
     const r = new FileReader();
     r.onload = () => { const im = new Image(); im.onload = () => { if (Math.abs(im.width / im.height / (W / H) - 1) < .02)
-        cb(cropDraw(im, 0, 0, im.width, im.height, W, H));
+        cb(f.type === 'image/jpeg' ? r.result : cropDraw(im, 0, 0, im.width, im.height, W, H));
     else
-        cropper(im, W, H, cb); }; im.src = r.result; };
+        cropper(im, W, H, (u, fr) => cb(u, { file: f, ...fr })); }; im.src = r.result; };
     r.readAsDataURL(f);
 }
-function cropper(im, W, H, cb) {
+function cropper(im, W, H, cb, start) {
     const maxW = Math.min(700, innerWidth - 80), maxH = Math.max(160, Math.min(440, innerHeight - 300)), s = Math.min(maxW / im.width, maxH / im.height, 1), dw = im.width * s, dh = im.height * s, max = Math.min(dw, dh * W / H);
     CR = { im, W, H, cb, s, dw, dh, max, w: max, x: (dw - max) / 2, y: (dh - max * H / W) / 2 };
     $('#m').innerHTML = `<div class="sheet wide">\
@@ -1022,6 +1024,12 @@ function cropper(im, W, H, cb) {
     } };
     $('#czm').oninput = e => cropZoom(+e.target.value);
     $('#cst').onwheel = e => { e.preventDefault(); const z = $('#czm'); z.value = +z.value - Math.sign(e.deltaY) * 4; cropZoom(+z.value); };
+    if (start) {
+        CR.w = Math.min(max, start.w * dw);
+        CR.x = start.x * dw;
+        CR.y = start.y * dh;
+        $('#czm').value = Math.max(15, Math.round(CR.w / max * 100));
+    }
     cropPlace();
 }
 function cropZoom(p) { const c = CR, cx = c.x + c.w / 2, cy = c.y + c.w * c.H / c.W / 2; c.w = c.max * p / 100; c.x = cx - c.w / 2; c.y = cy - c.w * c.H / c.W / 2; cropPlace(); }
@@ -1031,8 +1039,54 @@ function cropPlace() {
     c.y = Math.max(0, Math.min(c.dh - h, c.y));
     Object.assign($('#cbx').style, { left: c.x + 'px', top: c.y + 'px', width: c.w + 'px', height: h + 'px' });
 }
-function cropOk() { const c = CR; closeM(); document.querySelectorAll('input[type=file]').forEach(i => i.value = ''); c.cb(cropDraw(c.im, c.x / c.s, c.y / c.s, c.w / c.s, c.w * c.H / c.W / c.s, c.W, c.H)); }
+function cropOk() { const c = CR; closeM(); document.querySelectorAll('input[type=file]').forEach(i => i.value = ''); c.cb(cropDraw(c.im, c.x / c.s, c.y / c.s, c.w / c.s, c.w * c.H / c.W / c.s, c.W, c.H), { x: c.x / c.dw, y: c.y / c.dh, w: c.w / c.dw }); }
 function cropNo() { closeM(); document.querySelectorAll('input[type=file]').forEach(i => i.value = ''); }
+
+// Re-crop support (folder saving only). The untouched file behind a cropped picture is kept as originals/<id>-<img|banner>.<ext>;
+// the picture field k (img/banner) gets a note k+'O' = {p: file path, x, y, w: crop frame as fractions of the original}.
+const ORIG = {};
+// File path for the original of picture k on object o.
+const origPath = (o, k, f) => 'originals/' + o.id + '-' + k + '.' + (f.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace(/\W/g, '');
+// Remember (or forget) the original behind picture k; orig = {file?, p?, x, y, w} or nothing (right-shaped, or picture removed).
+function keepOrig(o, k, orig) {
+    delete o[k + 'O'];
+    if (!orig || STORE.mode !== 'folder')
+        return;
+    const p = orig.p || origPath(o, k, orig.file);
+    if (orig.file)
+        ORIG[p] = orig.file;
+    o[k + 'O'] = { p, x: orig.x, y: orig.y, w: orig.w };
+}
+// Write originals that are waiting to be saved (called by flush before the data file).
+async function putOriginals() { for (const p of Object.keys(ORIG)) {
+    await fsPut(p, ORIG[p]);
+    delete ORIG[p];
+} }
+// Delete saved originals nothing points to any more (picture replaced/removed, novel deleted).
+async function cleanOriginals() {
+    const keep = new Set();
+    eachImg((o, k) => { if (o[k + 'O'])
+        keep.add(o[k + 'O'].p.slice(10)); });
+    try {
+        const [d] = await fsDir('originals/x', false);
+        for await (const n of d.keys())
+            if (!keep.has(n))
+                await d.removeEntry(n);
+    }
+    catch (e) { }
+}
+// Re-open the crop window on the saved original, with the frame where it was left (id = section, none = whole book).
+async function recrop(k, id) {
+    const o = id ? fnd(NV().root, id) : NV(), r = o[k + 'O'], f = r && (ORIG[r.p] || await fsGet(r.p)), im = new Image();
+    if (!f) {
+        delete o[k + 'O'];
+        save();
+        render();
+        return;
+    }
+    im.onload = () => cropper(im, k === 'banner' ? 1900 : 400, k === 'banner' ? 400 : 600, (u, fr) => setImg(o, k, u, { p: r.p, ...fr }), r);
+    im.src = await dataUrl(f);
+}
 
 // Novel / section page: everything that DRAWS it (HTML builders). The things its buttons DO live in actions.js.
 // ===== Novel / section page. detV() = the whole screen; each block below is one piece of it, so edit one piece at a time =====
@@ -1080,8 +1134,8 @@ const fld = (l, k, v, ty) => `<div><label>${l}</label>\
 const detEdit = (N, x) => `<div class="panel ef">${fld('Title', 't', N.t)}${fld('Author', 'a', N.a)}${fld('Total words', 'pages', N.pages || '', 'number')}<div>\
 <label>Status</label>\
 <select onchange="set('status',this.value)">${['reading', 'completed', 'planned', 'paused'].map(s => `<option ${N.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>${fld('Started', 'st', N.st, 'date')}${fld('Finished', 'fin', N.fin, 'date')}
-${PATH.length ? picIn('Cover image · this section', `secImg('${x.id}',this.files[0])`, x.img, `noSecImg('${x.id}')`, '400 × 600') : picIn('Cover image', 'pick(this.files[0])', N.img, 'noImg()', '400 × 600')}
-${picIn('Banner image · whole book', 'pickBanner(this.files[0])', N.banner, 'noBanner()', '1900 × 400')}
+${PATH.length ? picIn('Cover image · this section', `secImg('${x.id}',this.files[0])`, x.img, `noSecImg('${x.id}')`, '400 × 600', x.imgO && `recrop('img','${x.id}')`) : picIn('Cover image', 'pick(this.files[0])', N.img, 'noImg()', '400 × 600', N.imgO && "recrop('img')")}
+${picIn('Banner image · whole book', 'pickBanner(this.files[0])', N.banner, 'noBanner()', '1900 × 400', N.bannerO && "recrop('banner')")}
 <div style="align-self:end"><button class="ghost red" onclick="delN()">${ui.cd ? 'Click again to delete' : 'Delete novel'}</button></div></div>`;
 // Progress tab: left panel = chapters / sections, right panel = log form + history
 function detCols(N, x, ed) {
@@ -1143,8 +1197,8 @@ const inpN = (id, l, k, v) => `<label>${l}</label><input value="${esc(v)}" oncha
 const brk = N => { const b = [...(N.br || []).filter(x => x.f), ...(N.status === 'paused' && N.pz ? [{ f: N.pz, t: '' }] : [])]; return b.length ? `<div class="chips" style="margin:0 0 12px">${b.map(x => `<span>⏸ ${x.f} → ${x.t || 'ongoing'}${x.t ? ' · ' + Math.max(0, Math.round((Date.parse(x.t) - Date.parse(x.f)) / 864e5)) + ' days' : ''}</span>`).join('')}</div>` : ''; };
 const nodeSt = (N, x) => { const q = ids(x); return N.log.filter(l => q.includes(l.p)).map(l => l.d).sort()[0] || ''; };
 // pictures: novel cover (img), novel banner, and an optional picture per section (falls back to the novel cover)
-const picIn = (label, on, has, off, hint) => `<div><label>${label}</label>\
-<input type="file" accept="image/*" onchange="${on}">${has ? `<a style="color:#e85d75;cursor:pointer;font-size:12px" onclick="${off}">remove</a>` : ''}<div class="hint">${hint}</div></div>`;
+const picIn = (label, on, has, off, hint, re) => `<div><label>${label}</label>\
+<input type="file" accept="image/*" onchange="${on}">${has ? `<a style="color:#e85d75;cursor:pointer;font-size:12px" onclick="${off}">remove</a>` : ''}${re ? `<a style="color:var(--acc);cursor:pointer;font-size:12px;margin-left:8px" onclick="${re}">re-crop</a>` : ''}<div class="hint">${hint}</div></div>`;
 function chk(x) {
     if (!x.ch.length || !x.dt)
         return '';
@@ -1211,9 +1265,9 @@ function divide() {
     render();
 }
 function rmC(id) { const x = trail().pop(), N = NV(), c = x.ch.find(z => z.id === id), d = ids(c); N.log = N.log.filter(l => !d.includes(l.p)); x.ch = x.ch.filter(z => z.id !== id); fit(N); settle(N); save(); render(); }
-const setImg = (o, k, v) => { o[k] = v; save(); render(); };
-const pick = f => fitImg(f, 400, 600, u => setImg(NV(), 'img', u)), pickBanner = f => fitImg(f, 1900, 400, u => setImg(NV(), 'banner', u));
-const secImg = (id, f) => fitImg(f, 400, 600, u => setImg(fnd(NV().root, id), 'img', u));
+const setImg = (o, k, v, orig) => { o[k] = v; keepOrig(o, k, orig); save(); render(); };
+const pick = f => fitImg(f, 400, 600, (u, o) => setImg(NV(), 'img', u, o)), pickBanner = f => fitImg(f, 1900, 400, (u, o) => setImg(NV(), 'banner', u, o));
+const secImg = (id, f) => fitImg(f, 400, 600, (u, o) => setImg(fnd(NV().root, id), 'img', u, o));
 const noImg = () => setImg(NV(), 'img', ''), noBanner = () => setImg(NV(), 'banner', ''), noSecImg = id => setImg(fnd(NV().root, id), 'img', '');
 function renameAll() { const x = trail().pop(), u = gv('bs').trim(); if (!u)
     return; x.u = u; x.up = gv('bp').trim() || u + 's'; let i = 0; x.ch.forEach(c => { if (!c.x)
