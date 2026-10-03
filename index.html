@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>Novelog</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22%230b1622%22%2F%3E%3Cpath%20d%3D%22M256%20168C216%20142%20164%20138%20110%20150V366C164%20354%20216%20358%20256%20384ZM256%20168C296%20142%20348%20138%20402%20150V366C348%20354%20296%20358%20256%20384Z%22%20fill%3D%22none%22%20stroke%3D%22%233db4f2%22%20stroke-width%3D%2226%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M256%20168V384%22%20stroke%3D%22%233db4f2%22%20stroke-width%3D%2226%22%2F%3E%3C%2Fsvg%3E"><style>
 :root { --bg:#edf1f5; --card:#fff; --tx:#2f3f4f; --mut:#7a8ea3; --line:#dde5ee; --acc:#3db4f2; --nav:#152232; --ok:#4cca51; --in:#f3f6f9; box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
 html { scroll-padding-top:env(safe-area-inset-top,0px); }
 * { box-sizing:border-box; }
@@ -297,15 +297,8 @@ function mig(n) {
     delete n.total;
     delete n.read;
 }
-// Starter library for a brand-new data folder
-const seed = () => ({ novels: [
-            mk('Re:Zero (Light Novel)', 'Tappei Nagatsuki', 'reading', 0, 0, 200),
-            mk("Omniscient Reader's Viewpoint", 'Sing Shong', 'reading', 551, 0, 265),
-            mk('Lord of the Mysteries', 'Cuttlefish That Loves Diving', 'completed', 1432, 1432, 340),
-            mk('Circle of Inevitability', 'Cuttlefish That Loves Diving', 'reading', 0, 0, 15),
-            mk('Classroom of the Elite: Year 1', 'Syougo Kinugasa', 'completed', 0, 0, 160),
-            mk('Classroom of the Elite: Year 2', 'Syougo Kinugasa', 'reading', 0, 0, 30)
-        ] });
+// what a brand-new data folder starts with: nothing
+const seed = () => ({ novels: [] });
 let S = { novels: [] };
 // load a data object as the app state (migrates it)
 const adopt = d => { if (!d || !d.novels)
@@ -1268,6 +1261,37 @@ function delN() { if (!ui.cd) {
     return;
 } S.novels = S.novels.filter(n => n.id !== ui.id); save(); back(); }
 
+// Browser Back / Forward (and the mouse back button): every screen change (library, stats, a novel, a section inside it)
+// is one history entry. Edits, typing and redraws are not. render0() calls navSync() after it chooses the screen.
+let NAVK = '';
+const navKey = () => ui.v === 'detail' ? 'detail|' + ui.id + '|' + PATH.join(',') : ui.v;
+// record the current screen in the browser history if it is a new screen
+function navSync() {
+    const k = navKey();
+    if (k === NAVK)
+        return;
+    const first = !NAVK, st = { v: ui.v, id: ui.id, path: [...PATH] };
+    NAVK = k;
+    if (first)
+        history.replaceState(st, '');
+    else
+        history.pushState(st, '');
+}
+// Back/Forward pressed: show the screen stored in that history entry
+addEventListener('popstate', e => {
+    const s = e.state;
+    if (!s || !$('#app') || STORE.mode === 'none')
+        return;
+    Object.assign(ui, { v: s.v, id: s.id, ed: false, cd: false });
+    PATH = [...s.path];
+    if (ui.v === 'detail' && !NV())
+        ui.v = 'lib';
+    NAVK = navKey();
+    render(1);
+    scrollTo(0, 0);
+});
+history.scrollRestoration = 'manual';
+
 // Redraw engine and startup: render (keeps scroll/focus), render0 (chooses the screen, wires header), boot (cleans loaded data), start().
 let RT = 0, ENT = 0, CH = null;
 function render(f) {
@@ -1319,6 +1343,7 @@ function render0() {
     const p = $('#per');
     if (p)
         p.onchange = e => { ui.per = e.target.value; render(); };
+    navSync();
 }
 document.querySelectorAll('header nav button').forEach(b => b.onclick = () => { ui.v = b.dataset.v; if (ui.v === 'stats')
     ui.sel = ''; render(); });
