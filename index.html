@@ -983,15 +983,15 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter') { ENT = 1; se
 // Remember which field just committed a change (for the length of this event) so render() can tell "clicked into another box" from "still editing"
 document.addEventListener('change', e => { CH = e.target; setTimeout(() => CH = null); }, true);
 
-// Picture intake. Covers are 400x600 and banners 1900x400. A picture whose shape already matches is just resized;
+// Picture intake. Covers are 2:3 and banners 19:4 (shape only; W x H below are the shape, not a size limit). Pictures keep full resolution;
 // any other shape opens a crop window (drag the frame, zoom with the slider or mouse wheel) so you pick the part that shows.
 let CR = null;
 const cropDraw = (im, sx, sy, sw, sh, W, H) => {
-    const w = Math.min(W, Math.round(sw)), c = document.createElement('canvas');
+    const w = Math.round(sw), c = document.createElement('canvas');
     c.width = w;
     c.height = Math.round(w * H / W);
     c.getContext('2d').drawImage(im, sx, sy, sw, sh, 0, 0, c.width, c.height);
-    return c.toDataURL('image/jpeg', H < 500 ? .82 : .8);
+    return c.toDataURL('image/jpeg', H < 500 ? .95 : .92);
 };
 function fitImg(f, W, H, cb) {
     if (!f)
