@@ -412,6 +412,8 @@ function settle(N) { fixLogs(N); const L = lv(N.root); let carry = 0; L.forEach(
 }
 else
     carry = 0; l.read = r; }); }
+// number of real sections in a node (side stories are not counted)
+const mainCount = x => x.ch.filter(c => !c.x).length;
 // main-story leaves of a node, in order
 const leaves = x => x.ch.length ? x.ch.filter(c => !c.x).flatMap(leaves) : [x];
 // latest logged chapter count for a leaf
@@ -823,7 +825,7 @@ function libV() {
 <div class="cv" style="background:${n.img ? `url('${n.img}') center/cover` : grad(n.hue)}">\
 <span class="chip">${n.status}</span>${n.status === 'completed' ? '' : `<div class="qb" onclick="event.stopPropagation();bump('${n.id}')">${dR(n.root)}${dT(n.root) ? ' / ' + dT(n.root) : ''} +</div>`}${n.img ? '' : `<span class="ini">${esc(n.t.charAt(0))}</span><span class="ct">${esc(n.t)}</span>`}</div>
 <div class="meta"><b>${esc(n.a || 'Unknown author')}</b>\
-<br>${n.root.ch.length ? n.root.ch.length + ' ' + (n.root.ch.length === 1 ? (n.root.u || 'part') : (n.root.up || 'parts')) + ' · ' : ''}Ch ${dR(n.root)}${dT(n.root) ? ' / ' + dT(n.root) : ''}<div class="bar">\
+<br>${mainCount(n.root) ? mainCount(n.root) + ' ' + (mainCount(n.root) === 1 ? (n.root.u || 'part') : (n.root.up || 'parts')) + ' · ' : ''}Ch ${dR(n.root)}${dT(n.root) ? ' / ' + dT(n.root) : ''}<div class="bar">\
 <i class="${n.status === 'completed' ? 'ok' : ''}" style="width:${n.status === 'completed' && !mT(n.root) ? 100 : pct(n)}%"></i></div></div></div>`).join('')}</div>` : '<div class="empty">Nothing here yet. Hit + Add.</div>');
 }
 function open_(id) { ui.id = id; ui.v = 'detail'; ui.ed = false; ui.cd = false; ui.tab = 'prog'; ui.ld = ''; PATH = []; render(); scrollTo(0, 0); }
@@ -1087,7 +1089,7 @@ function detCols(N, x, ed) {
     return `<div class="cols"><div class="panel">
 ${detSecName(x, ed)}
 ${detTotalIn(x, ed, leaf)}${chk(x)}
-<div class="sh"><h3>${leaf ? 'Chapters' : esc(x.up || 'Sections') + ' · ' + x.ch.length}</h3>\
+<div class="sh"><h3>${leaf ? 'Chapters' : esc(x.up || 'Sections') + ' · ' + mainCount(x)}</h3>\
 <span class="cnt">${dR(x)} / ${dT(x) || '?'} chapters${dT(x) && dR(x) > dT(x) ? ` <em class="ov">+${dR(x) - dT(x)} over</em>` : ''}</span></div>
 ${leaf ? detLeaf(x, ed) : detList(N, x, ed)}
 ${detAddBox(x, ed, leaf)}</div>
@@ -1190,11 +1192,11 @@ function setNode(id, k, v, nr) { const N = NV(), q = fnd(N.root, id); if (k === 
 } save(); if (!nr)
     render(); }
 function divide() {
-    const x = trail().pop(), N = NV(), n = Math.min(60, +gv('bn') || (x.ch.length ? 1 : 2)), u = gv('bs').trim() || 'Part', b = x.ch.length;
+    const x = trail().pop(), N = NV(), n = Math.min(60, +gv('bn') || (x.ch.length ? 1 : 2)), u = gv('bs').trim() || 'Part', b = x.ch.length, main = mainCount(x);
     x.u = u;
     x.up = gv('bp').trim() || u + 's';
     for (let j = 1; j <= n; j++)
-        x.ch.push({ id: uid(), name: u + ' ' + (b + j), total: 0, read: 0, ch: [] });
+        x.ch.push({ id: uid(), name: u + ' ' + (main + j), total: 0, read: 0, ch: [] });
     if (!b) {
         const f = x.ch[0];
         f.read = x.read;
