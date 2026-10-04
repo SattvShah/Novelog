@@ -24,7 +24,7 @@ h1 { font-size:18px; margin:0 0 14px; }
 .tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
 .tabs button { border:0; background:var(--card); color:var(--mut); font:700 13px inherit; font-family:inherit; padding:8px 14px; border-radius:20px; cursor:pointer; }
 .tabs button.on { background:var(--acc); color:#fff; }
-.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:20px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,190px)); justify-content:center; gap:20px; }
 .nv { cursor:pointer; transition:transform .15s; }
 .nv:hover { transform:translateY(-3px); }
 .cv { aspect-ratio:2/3; border-radius:6px; position:relative; overflow:hidden; box-shadow:0 8px 24px rgba(20,40,70,.18); display:flex; align-items:flex-end; padding:12px; color:#fff; }
@@ -144,6 +144,7 @@ main.w { max-width:1500px; padding-top:30px; }
 }
 @media(max-width:640px) {
   .panels { grid-template-columns:1fr; }
+  .grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
   header { padding:0 12px; }
   .brand { margin-right:6px; }
   .btn { padding:8px 10px; }
