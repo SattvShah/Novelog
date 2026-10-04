@@ -97,6 +97,11 @@ main.w { max-width:1500px; padding-top:30px; }
 .hist div { padding:8px 0; }
 .xk { display:flex!important; gap:6px; align-items:center; text-transform:none; font-size:12px; letter-spacing:0; font-weight:700; margin:0; }
 .xk input { width:auto; }
+.mds { display:flex; flex-direction:column; gap:12px; }
+.mds .xk { line-height:13px; }
+.mds .xk input { margin:0; }
+.sp { visibility:hidden; }
+@media(max-width:440px) { .sp { display:none; } }
 .sc.x { border:1.5px dashed var(--mut); background:transparent; }
 .sc.x .bar i { background:#c063ff; }
 .xt { font-style:normal; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#c063ff; }
@@ -333,7 +338,7 @@ function events(id, ps) {
         const pv = {}, dd = {}, pc2 = ppcMap(n), ld = n.log.map(l => l.d).sort(), bk = [...(n.br || []).filter(b => b.f).map(b => ({ f: b.f, t: b.t || ld.find(x => x >= b.f) || today() })), ...(n.status === 'paused' && n.pz ? [{ f: n.pz, t: today() }] : [])], inB = d => bk.some(b => d >= b.f && d <= b.t);
         [...n.log].sort((a, b) => a.d.localeCompare(b.d) || a.c - b.c).forEach(l => { const k = l.p || '', d = Math.max(0, l.c - (pv[k] || 0)), o = dd[l.d] = dd[l.d] || {}; o[k] = (o[k] || 0) + d; pv[k] = l.c; });
         if (!n.log.length && n.status === 'completed' && n.fin)
-            dd[n.fin] = Object.fromEntries(allL(n.root).map(l => [l.id, l.total]));
+            dd[n.fin] = Object.fromEntries(allL(n.root).filter(l => !knownIds(n.root).has(l.id)).map(l => [l.id, l.total]));
         let prev = null;
         Object.keys(dd).filter(D => D >= '1990-01-01').sort().forEach((D, i) => {
             const t = Date.parse(D), m = Object.keys(dd[D]).reduce((a, k) => a + (!ps || ps.includes(k) ? dd[D][k] : 0), 0), pgs = Object.keys(dd[D]).reduce((a, k) => a + (!ps || ps.includes(k) ? dd[D][k] * (pc2[k] || 0) : 0), 0);
@@ -371,6 +376,11 @@ const NV = () => S.novels.find(n => n.id === ui.id), fnd = (x, id) => { if (x.id
 } }, ids = x => [x.id, ...x.ch.flatMap(ids)], fa = x => x.ch.length ? x.ch.filter(c => !c.x).forEach(fa) : (x.total && (x.read = x.total));
 // trail = [root, ...opened sections]; pc = percent complete of a node
 const trail = () => { let y = NV().root; const a = [y]; PATH.forEach(id => { y = y.ch.find(c => c.id === id) || y; a.push(y); }); return a; }, pc = x => { const t = mT(x); return t ? Math.min(100, mR(x) / t * 100) : 0; };
+// ids of the sections the reader already knows (flagged kn, e.g. seen the anime) and everything inside them: counted as read, never in the stats
+const knownIds = (x, inside = false, out = new Set()) => { const k = inside || !!x.kn; if (k)
+    out.add(x.id); x.ch.forEach(c => knownIds(c, k, out)); return out; };
+// chapters read inside x (of novel n) that sit in known sections
+const knownRead = (n, x) => { const k = knownIds(n.root); return allL(x).filter(l => k.has(l.id)).reduce((a, l) => a + l.read, 0); };
 // un = chapter count unknown/auto; lv = counted leaves; allL = all leaves
 const un = (c, f) => c.auto || tot(c, f) === 0, lv = x => x.ch.length ? x.ch.filter(cnt).flatMap(lv) : [x], allL = x => x.ch.length ? x.ch.flatMap(allL) : [x];
 // fill unknown (auto) section totals from the parent's declared total
@@ -423,7 +433,7 @@ const last = (N, id) => { const r = N.log.filter(l => l.p === id).sort((a, b) =>
 // after logAt: keep one entry per section for day d (the newest, from index `since` on, replaces earlier ones that day)
 function mergeDay(N, d, since) { const fresh = N.log.slice(since); N.log = N.log.filter((l, i) => i >= since || l.d !== d || !fresh.some(f => f.p === l.p)); }
 // log 'read up to chapter c' on date d for a node (spreads over its leaves)
-function logAt(N, x, c, d) { let rem = c; lv(x).forEach(l => { const v = l.total ? Math.min(rem, l.total) : rem; rem -= v; l.read = v; if (v !== last(N, l.id))
+function logAt(N, x, c, d) { let rem = c; const kn = knownIds(N.root); lv(x).forEach(l => { const v = l.total ? Math.min(rem, l.total) : rem; rem -= v; l.read = v; if (v !== last(N, l.id) && !kn.has(l.id))
     N.log.push({ d, c: v, p: l.id }); }); }
 // date a node was finished ('' if not)
 function finD(N, q) { const L = leaves(q).filter(l => l.total); if (!L.length)
@@ -439,7 +449,8 @@ function finishOn(id, d) {
     if (!d)
         return;
     const N = NV(), q = fnd(N.root, id);
-    leaves(q).filter(l => l.total).forEach(l => { N.log = N.log.filter(g => !(g.p === l.id && g.c >= l.total)); l.read = l.total; N.log.push({ d, c: l.total, p: l.id }); });
+    const kn = knownIds(N.root);
+    leaves(q).filter(l => l.total && !kn.has(l.id)).forEach(l => { N.log = N.log.filter(g => !(g.p === l.id && g.c >= l.total)); l.read = l.total; N.log.push({ d, c: l.total, p: l.id }); });
     if (N.status === 'planned')
         N.status = 'reading';
     settle(N);
@@ -781,7 +792,7 @@ const perSel = () => `<select id="per"><option value="week" ${ui.per === 'week' 
 <option value="month" ${ui.per === 'month' ? 'selected' : ''}>Per month</option></select>`;
 function core(nid, node) {
     const all = S.novels, N = nid ? all.find(n => n.id === nid) : null, ev = events(nid, node ? ids(node) : null), sel = N ? [N] : all;
-    const fin = sel.filter(n => n.status === 'completed').length, ch = node ? nR(node) : sel.reduce((a, n) => a + R(n), 0), pg = sel.reduce((a, n) => { const q = ppcMap(n); return a + allL(node || n.root).reduce((z, l) => z + l.read * (q[l.id] || 0), 0); }, 0);
+    const fin = sel.filter(n => n.status === 'completed').length, ch = node ? nR(node) - knownRead(N, node) : sel.reduce((a, n) => a + R(n) - knownRead(n, n.root), 0), pg = sel.reduce((a, n) => { const q = ppcMap(n), k = knownIds(n.root); return a + allL(node || n.root).filter(l => !k.has(l.id)).reduce((z, l) => z + l.read * (q[l.id] || 0), 0); }, 0);
     const evn = ev.reduce((a, e) => a + e.n, 0), days = new Set(ev.filter(e => e.n > 0).map(e => e.d)).size, byD = {};
     ev.forEach(e => byD[e.d] = (byD[e.d] || 0) + e.n);
     const ds = Object.keys(byD).sort();
@@ -1148,8 +1159,8 @@ function finishedOn(N, x) {
     const days = L.map(l => N.log.filter(g => g.p === l.id && g.c >= l.total).map(g => g.d).sort()[0]).filter(Boolean).sort();
     return days.pop() || N.fin || (x === N.root ? lastD(N) : '');
 }
-// Finished books of these novels: [{id, d}] (d = day finished, '' if unknown).
-const booksDone = novels => novels.flatMap(N => unitsAt(N.root, N.bl || 0)
+// Finished books of these novels: [{id, d}] (d = day finished, '' if unknown); sections marked "already know" are not books read.
+const booksDone = novels => novels.flatMap(N => unitsAt(N.root, N.bl || 0).filter(u => !knownIds(N.root).has(u.id))
     .map(u => ({ id: u.id, d: finishedOn(N, u) })).filter(b => b.d !== null));
 
 // Group the sections of the open page under new sections of a new level (e.g. 100 episodes -> volumes of 5, 5, 6, ...).
@@ -1229,7 +1240,7 @@ const detEdit = (N, x) => `<div class="panel ef">${fld('Title', 't', N.t)}${fld(
 <label>Status</label>\
 <select onchange="set('status',this.value)">${['reading', 'completed', 'planned', 'paused'].map(s => `<option ${N.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>${fld('Started', 'st', N.st, 'date')}${fld('Finished', 'fin', N.fin, 'date')}
 ${PATH.length ? picIn('Cover image · this section', `secImg('${x.id}',this.files[0])`, x.img, `noSecImg('${x.id}')`, '400 × 600', x.imgO && `recrop('img','${x.id}')`) : picIn('Cover image', 'pick(this.files[0])', N.img, 'noImg()', '400 × 600', N.imgO && "recrop('img')")}
-${picIn('Banner image · whole book', 'pickBanner(this.files[0])', N.banner, 'noBanner()', '1900 × 400', N.bannerO && "recrop('banner')")}
+${picIn('Banner image', 'pickBanner(this.files[0])', N.banner, 'noBanner()', '1900 × 400', N.bannerO && "recrop('banner')")}
 ${PATH.length ? '' : detBookLvl(N) + detModes(N)}
 <div style="align-self:end"><button class="ghost red" onclick="delN()">${ui.cd ? 'Click again to delete' : 'Delete novel'}</button></div></div>`;
 // Progress tab: left panel = chapters / sections, right panel = log form + history
@@ -1253,25 +1264,27 @@ const detLeaf = (x, ed) => ed ? `<div style="max-width:200px">\
 <label>Chapters in this ${PATH.length ? 'section' : 'novel'}${x.auto ? ' (worked out from the total above)' : ''}</label>\
 <input type="number" min="0" value="${x.total || ''}" onchange="setNode('${x.id}','total',+this.value||0)"></div>` : '<div class="empty" style="padding:24px 0">Nothing inside yet. Hit Edit to divide this into volumes, arcs, episodes, whatever you like.</div>';
 // a section with children: edit rows or cards
-const detList = (N, x, ed) => `<div class="${ed ? 'el' : 'sg'}">${ed ? detListHead(x) : ''}${x.ch.map(c => ed ? rowEdit(N, c) : rowCard(N, c)).join('')}</div>`;
-const detListHead = x => '<div class="eh"><span>Name</span><span>Chapters</span><span>Ends at ch.</span><span></span></div>' + (x.ch.some(c => c.auto) ? '<div class="cnt" style="margin:-2px 0 2px">Dashed numbers are worked out for you. Type your own to lock one in, or clear it to go back to automatic.</div>' : '');
+const detList = (N, x, ed) => `<div class="${ed ? 'el' : 'sg'}">${ed ? detListHead : ''}${x.ch.map(c => ed ? rowEdit(N, c) : rowCard(N, c)).join('')}</div>`;
+const detListHead = '<div class="eh"><span>Name</span><span>Chapters</span><span>Ends at ch.</span><span></span></div>';
 // one section as an editable row (+ its "more options" fold)
 const rowEdit = (N, c) => `<div class="er"><div class="er1"><input value="${esc(c.name)}" onchange="setNode('${c.id}','name',this.value,1)">\
 <input class="tin${c.auto ? ' ai' : ''}" type="number" min="0" placeholder="${mT(c) || ''}" value="${c.ch.length ? (c.dt || '') : (c.total || '')}" onchange="setNode('${c.id}','${c.ch.length ? 'dt' : 'total'}',+this.value||0)">${c.x ? '<span>\
 </span>' : `<input type="number" min="0" ${c.auto ? 'class="ai"' : ''} value="${endv(N, c)}" onchange="setEnd('${c.id}',+this.value||0)">`}<button class="ghost d" onclick="enter('${c.id}')">Open ›</button></div>
 <details class="mo" ${ui.op && ui.op[c.id] ? 'open' : ''} ontoggle="ui.op=ui.op||{};ui.op['${c.id}']=this.open"><summary>\
-<span>${dR(c)} / ${dT(c) || '?'} ch${dT(c) && dR(c) > dT(c) ? ` · +${dR(c) - dT(c)} over` : ''}${c.auto ? ' · worked out' : ''}</span>\
+<span>${dR(c)} / ${dT(c) || '?'} ch${dT(c) && dR(c) > dT(c) ? ` · +${dR(c) - dT(c)} over` : ''}${c.auto ? ' · worked out' : ''}${c.kn ? ' · known' : ''}</span>\
 <span class="mt"></span></summary><div class="er2"><div><label>Finished on</label>\
 <input type="date" value="${finD(N, c)}" onblur="dFin('${c.id}',this)" onkeydown="if(event.key==='Enter')this.blur()"></div><div><label>Words</label>\
 <input type="number" min="0" placeholder="optional" value="${c.pg || ''}" onchange="setNode('${c.id}','pg',+this.value||0)"></div>
 <label class="xk">\
 <input type="checkbox" ${c.x ? 'checked' : ''} onchange="setNode('${c.id}','x',this.checked)">Side story</label>${c.x ? `<label class="xk">\
-<input type="checkbox" ${c.xc ? 'checked' : ''} onchange="setNode('${c.id}','xc',this.checked)">Included in total chapters</label>` : ''}<a onclick="rmC('${c.id}')">Remove this section</a>\
+<input type="checkbox" ${c.xc ? 'checked' : ''} onchange="setNode('${c.id}','xc',this.checked)">Included in total chapters</label>` : ''}<label class="xk">\
+<input type="checkbox" ${c.kn ? 'checked' : ''} onchange="setKnown('${c.id}',this.checked)">Already know this (e.g. watched the anime)</label>\
+<a onclick="rmC('${c.id}')">Remove this section</a>\
 </div></details></div>`;
 // one section as a card (picture, name, progress)
 const rowCard = (N, c) => `<div class="sc${c.x ? ' x' : ''}" onclick="enter('${c.id}')">\
 <div class="sth" style="background-image:${c.img || N.img ? `url('${c.img || N.img}')` : grad(N.hue)}"></div><div class="sb">\
-<b>${esc(c.name)}</b>${c.x ? '<em class="xt">Side story</em>' : ''}<span>${dR(c)} / ${dT(c) || '?'} ch${c.auto ? ' · auto' : ''}${dT(c) && dR(c) > dT(c) ? ` <em class="ov">+${dR(c) - dT(c)} over</em>` : ''}</span>\
+<b>${esc(c.name)}</b>${c.x ? '<em class="xt">Side story</em>' : ''}${c.kn ? '<em class="xt">Known</em>' : ''}<span>${dR(c)} / ${dT(c) || '?'} ch${c.auto ? ' · auto' : ''}${dT(c) && dR(c) > dT(c) ? ` <em class="ov">+${dR(c) - dT(c)} over</em>` : ''}</span>\
 <div class="bar"><i class="${pc(c) >= 100 ? 'ok' : ''}" style="width:${pc(c)}%"></i></div></div></div>`;
 // "Divide into sections" / "Add or rename sections" fold
 const detAddBox = (x, ed, leaf) => ed ? `<details class="mo add" ${leaf || (ui.op && ui.op.add) ? 'open' : ''} ontoggle="ui.op=ui.op||{};ui.op.add=this.open">\
@@ -1285,13 +1298,11 @@ const detAddBox = (x, ed, leaf) => ed ? `<details class="mo add" ${leaf || (ui.o
 // book-level box: which level of sections counts as one book in the stats (hidden when the novel has no subdivisions)
 const detBookLvl = N => bookLevels(N).length < 2 ? '' : `<div><label>Count as one book</label><select onchange="set('bl',+this.value)">\
 ${bookLevels(N).map(o => `<option value="${o.d}" ${(N.bl || 0) === o.d ? 'selected' : ''}>${o.d ? 'Each ' + esc(o.name) : 'Whole series'}</option>`).join('')}\
-</select><div class="hint">Used for the books-read stats.</div></div>`;
-// book-level switches: chapters count from 1 inside each top-level section (Arc); still releasing (ongoing)
-const detModes = N => `<div><label class="xk"><input type="checkbox" ${N.rs ? 'checked' : ''} onchange="setRestart(this.checked)">\
-Number each ${esc(N.root.u || 'section')} from 1</label><div class="hint">Ends at ch. and the log count from 1 inside every \
-${esc((N.root.u || 'section').toLowerCase())}. The book total still adds them up.</div></div>\
-<div><label class="xk"><input type="checkbox" ${N.on ? 'checked' : ''} onchange="set('on',this.checked)">Still releasing (ongoing)</label>\
-<div class="hint">Never marks the book completed on its own.</div></div>`;
+</select></div>`;
+// book-level switches: chapters count from 1 inside each top-level section (Arc); ongoing
+const detModes = N => `<div><label class="sp">.</label><div class="mds"><label class="xk"><input type="checkbox" ${N.rs ? 'checked' : ''} onchange="setRestart(this.checked)">\
+Number each ${esc(N.root.u || 'section')} from 1</label>\
+<label class="xk"><input type="checkbox" ${N.on ? 'checked' : ''} onchange="set('on',this.checked)">Ongoing</label></div></div>`;
 // edit box: group the sections of this page under new sections of a new level, sizes typed (e.g. 5, 5, 6)
 const detGroupBox = (x, ed, leaf) => ed && !leaf && mainCount(x) > 1 ? `<details class="mo add" ${ui.op && ui.op.grp ? 'open' : ''} \
 ontoggle="ui.op=ui.op||{};ui.op.grp=this.open"><summary><span>Group into a new level</span><span class="mt"></span></summary>\
@@ -1303,10 +1314,9 @@ ontoggle="ui.op=ui.op||{};ui.op.grp=this.open"><summary><span>Group into a new l
 const detLog = (N, x, leaf) => `<div class="seg"><button class="${ui.lm === 'br' ? '' : 'on'}" onclick="lmode('ch')">Log reading</button>\
 <button class="${ui.lm === 'br' ? 'on' : ''}" onclick="lmode('br')">Log a break</button></div>${ui.lm === 'br' ? `<div class="lr"><div>\
 <label>From</label><input id="b_f" type="date" value="${today()}"></div><div><label>To (optional)</label><input id="b_t" type="date"></div></div>\
-<button class="btn" style="width:100%" onclick="logBr()">Add break</button>\
-<div class="cnt" style="margin-top:10px">Leave "To" empty if you're still on a break. It ends at your next logged chapter.</div>` : `<label style="margin-bottom:10px;text-transform:none;font-size:13px;letter-spacing:0">${PATH.length ? esc(x.name) : esc(N.t)}</label>\
+<button class="btn" style="width:100%" onclick="logBr()">Add break</button>` : `<label style="margin-bottom:10px;text-transform:none;font-size:13px;letter-spacing:0">${PATH.length ? esc(x.name) : esc(N.t)}</label>\
 <div class="lr"><div><label>Read up to chapter</label><input id="l_c" type="number" min="0" value="${leaf ? x.read : dR(x)}"></div><div>\
-<label>Date</label><input id="l_d" type="date" value="${ui.ld || today()}"></div></div><button class="btn" style="width:100%" onclick="logIt()">Log</button>${leaf ? '' : `<div class="cnt" style="margin-top:10px">Counts through the ${esc((x.up || 'sections').toLowerCase())} in order; extras are skipped.</div>`}`}`;
+<label>Date</label><input id="l_d" type="date" value="${ui.ld || today()}"></div></div><button class="btn" style="width:100%" onclick="logIt()">Log</button>`}`;
 const inpN = (id, l, k, v) => `<label>${l}</label><input value="${esc(v)}" onchange="setNode('${id}','${k}',this.value,1)">`;
 const brk = N => { const b = [...(N.br || []).filter(x => x.f), ...(N.status === 'paused' && N.pz ? [{ f: N.pz, t: '' }] : [])]; return b.length ? `<div class="chips" style="margin:0 0 12px">${b.map(x => `<span>⏸ ${x.f} → ${x.t || 'ongoing'}${x.t ? ' · ' + Math.max(0, Math.round((Date.parse(x.t) - Date.parse(x.f)) / 864e5)) + ' days' : ''}</span>`).join('')}</div>` : ''; };
 const nodeSt = (N, x) => { const q = ids(x); return N.log.filter(l => q.includes(l.p)).map(l => l.d).sort()[0] || ''; };
@@ -1373,6 +1383,21 @@ function setNode(id, k, v, nr) { const N = NV(), q = fnd(N.root, id); if (k === 
     settle(N);
 } save(); if (!nr)
     render(); }
+// "Already know this" (e.g. seen the anime): the section (and what is inside) counts as read for progress but never in the stats
+function setKnown(id, v) {
+    const N = NV(), q = fnd(N.root, id);
+    if (v) {
+        q.kn = true;
+        fa(q);
+        if (N.status === 'planned')
+            N.status = 'reading';
+        settle(N);
+    }
+    else
+        delete q.kn;
+    save();
+    render();
+}
 // a section that had no children becomes a parent: its reading and log move to its first new child
 function leafToParent(N, x) {
     const f = x.ch[0];
