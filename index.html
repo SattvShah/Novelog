@@ -1193,6 +1193,63 @@ function groupBy() {
     render();
 }
 
+// Fix a grouping afterwards: change where the groups are cut (resize) or take the groups away again (ungroup).
+// Both keep every episode, its reading and its log; only the level above them changes.
+// A page is "grouped" when all its main sections are themselves made of sections (e.g. a series made of volumes).
+const isGrouped = x => { const m = x.ch.filter(c => !c.x); return m.length > 1 && m.every(c => c.ch.some(z => !z.x)); };
+// How many main sections each group holds now, e.g. "3, 3, 4".
+const groupSizes = x => x.ch.filter(c => !c.x).map(c => c.ch.filter(z => !z.x).length);
+// Text under the resize box: checks the typed sizes against the groups and the sections inside them.
+function resizeHint(v) {
+    const x = trail().pop(), g = groupSizes(x), s = groupList(v), n = s.reduce((a, b) => a + b, 0), m = g.reduce((a, b) => a + b, 0);
+    $('#rh').textContent = !s.length ? '' : s.length !== g.length ? `Needs ${g.length} numbers, one per ${(x.ch[0].u ? x.u : 'group').toLowerCase()}` + ` (typed ${s.length})`
+        : n > m ? `Too many: ${n} of ${m}` : n === m ? `Uses all ${m}` : `Uses ${n} of ${m}; the other ${m - n} go into the last group`;
+}
+// Resize: pool every group's main sections in order, then hand them out again by the typed sizes (last group takes any left over).
+// Group names, pictures and settings stay; each group keeps its own side stories.
+function resizeGroups() {
+    const x = trail().pop(), N = NV(), gs = x.ch.filter(c => !c.x), s = groupList(gv('rs')), pool = gs.flatMap(g => g.ch.filter(z => !z.x));
+    if (!isGrouped(x) || s.length !== gs.length || s.reduce((a, b) => a + b, 0) > pool.length)
+        return;
+    let i = 0;
+    gs.forEach((g, k) => { const own = g.ch.filter(z => z.x); g.ch = [...pool.slice(i, k === gs.length - 1 ? undefined : i + s[k]), ...own]; i += s[k]; });
+    if (N.rs && x === N.root)
+        clearEnds(N.root);
+    fit(N);
+    settle(N);
+    save();
+    render();
+}
+// Ungroup (asks twice): the groups' sections move up into this page and the groups disappear (their names and pictures are lost).
+function ungroup() {
+    const x = trail().pop(), N = NV();
+    if (!isGrouped(x))
+        return;
+    if (ui.ug !== x.id) {
+        ui.ug = x.id;
+        render();
+        return;
+    }
+    const gs = x.ch.filter(c => !c.x), own = x.ch.filter(c => c.x);
+    gs.forEach(g => { if (g.kn) g.ch.forEach(z => { z.kn = true; }); });
+    x.ch = [...gs.flatMap(g => g.ch.filter(z => !z.x)), ...gs.flatMap(g => g.ch.filter(z => z.x)), ...own];
+    x.u = gs[0].u;
+    x.up = gs[0].up;
+    if (!x.u)
+        delete x.u;
+    if (!x.up)
+        delete x.up;
+    if ((N.bl || 0) > PATH.length)
+        N.bl--;
+    if (N.rs && x === N.root)
+        clearEnds(N.root);
+    ui.ug = '';
+    fit(N);
+    settle(N);
+    save();
+    render();
+}
+
 // Novel / section page: everything that DRAWS it (HTML builders). The things its buttons DO live in actions.js.
 // ===== Novel / section page. detV() = the whole screen; each block below is one piece of it, so edit one piece at a time =====
 function detV() {
@@ -1252,7 +1309,7 @@ ${detTotalIn(x, ed, leaf)}${chk(x)}
 <div class="sh"><h3>${leaf ? 'Chapters' : esc(x.up || 'Sections') + ' · ' + mainCount(x)}</h3>\
 <span class="cnt">${dR(x)} / ${dT(x) || '?'}${N.on && x === N.root && dT(x) ? '+' : ''} chapters${dT(x) && dR(x) > dT(x) ? ` <em class="ov">+${dR(x) - dT(x)} over</em>` : ''}</span></div>
 ${leaf ? detLeaf(x, ed) : detList(N, x, ed)}
-${detAddBox(x, ed, leaf)}${detGroupBox(x, ed, leaf)}</div>
+${detAddBox(x, ed, leaf)}${detGroupBox(x, ed, leaf)}${detRegroupBox(x, ed, leaf)}</div>
 <div class="panel">${detLog(N, x, leaf)}
 <div class="hist" style="margin-top:18px">${hist(N, x, ed)}</div></div></div>`;
 }
@@ -1310,6 +1367,12 @@ ontoggle="ui.op=ui.op||{};ui.op.grp=this.open"><summary><span>Group into a new l
 <input id="gp" placeholder="Plural, e.g. Volumes"></div>\
 <input id="gs" style="margin-top:8px" placeholder="How many ${esc((x.up || 'sections').toLowerCase())} in each, e.g. 5, 5, 6, 4" oninput="groupHint(this.value)">\
 <div class="cnt" id="gh" style="margin-top:6px"></div><div class="dvb"><button class="btn" onclick="groupBy()">Group</button></div></details>` : '';
+// edit box (only on a grouped page): retype where the groups are cut, or ungroup them again
+const detRegroupBox = (x, ed, leaf) => ed && !leaf && isGrouped(x) ? `<details class="mo add" ${ui.op && ui.op.rsz ? 'open' : ''} \
+ontoggle="ui.op=ui.op||{};ui.op.rsz=this.open"><summary><span>Resize or ungroup</span><span class="mt"></span></summary>\
+<input id="rs" value="${groupSizes(x).join(', ')}" placeholder="How many in each, e.g. 5, 5, 6, 4" oninput="resizeHint(this.value)">\
+<div class="cnt" id="rh" style="margin-top:6px"></div><div class="dvb"><button class="btn" onclick="resizeGroups()">Resize</button>\
+<button class="ghost red" onclick="ungroup()">${ui.ug === x.id ? 'Click again to ungroup' : 'Ungroup'}</button></div></details>` : '';
 // right panel: log reading / log a break form
 const detLog = (N, x, leaf) => `<div class="seg"><button class="${ui.lm === 'br' ? '' : 'on'}" onclick="lmode('ch')">Log reading</button>\
 <button class="${ui.lm === 'br' ? 'on' : ''}" onclick="lmode('br')">Log a break</button></div>${ui.lm === 'br' ? `<div class="lr"><div>\
@@ -1356,7 +1419,7 @@ const hist = (N, x, ed) => { const it = [...N.log.map((l, i) => ({ l, i })).filt
 // Novel / section page actions: edit mode, sections, fields, breaks, logging, pictures, delete. (The HTML lives in detail.js.)
 function tab(t) { ui.tab = t; render(); }
 function rmBr(i) { NV().br.splice(i, 1); save(); render(); }
-function tgl() { ui.ed = !ui.ed; ui.cd = false; render(); }
+function tgl() { ui.ed = !ui.ed; ui.cd = false; ui.ug = ''; render(); }
 function go(i) { PATH = PATH.slice(0, i); render(); }
 function enter(id) { PATH.push(id); render(); scrollTo(0, 0); }
 function set(k, v, nr) { const N = NV(), o = N.status; if (k === 'pages')
