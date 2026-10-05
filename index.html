@@ -1376,7 +1376,7 @@ ontoggle="ui.op=ui.op||{};ui.op.rsz=this.open"><summary><span>Resize or ungroup<
 // right panel: log reading / log a break form
 const detLog = (N, x, leaf) => `<div class="seg"><button class="${ui.lm === 'br' ? '' : 'on'}" onclick="lmode('ch')">Log reading</button>\
 <button class="${ui.lm === 'br' ? 'on' : ''}" onclick="lmode('br')">Log a break</button></div>${ui.lm === 'br' ? `<div class="lr"><div>\
-<label>From</label><input id="b_f" type="date" value="${today()}"></div><div><label>To (optional)</label><input id="b_t" type="date"></div></div>\
+<label>From</label><input id="b_f" type="date" value="${today()}"></div><div><label>To (blank = still on break)</label><input id="b_t" type="date"></div></div>\
 <button class="btn" style="width:100%" onclick="logBr()">Add break</button>` : `<label style="margin-bottom:10px;text-transform:none;font-size:13px;letter-spacing:0">${PATH.length ? esc(x.name) : esc(N.t)}</label>\
 <div class="lr"><div><label>Read up to chapter</label><input id="l_c" type="number" min="0" value="${leaf ? x.read : dR(x)}"></div><div>\
 <label>Date</label><input id="l_d" type="date" value="${ui.ld || today()}"></div></div><button class="btn" style="width:100%" onclick="logIt()">Log</button>`}`;
@@ -1492,8 +1492,16 @@ function renameAll() { const x = trail().pop(), u = gv('bs').trim(); if (!u)
     return; x.u = u; x.up = gv('bp').trim() || u + 's'; let i = 0; x.ch.forEach(c => { if (!c.x)
     c.name = u + ' ' + (++i); }); save(); render(); }
 function lmode(m) { ui.lm = m; render(); }
-function logBr() { const N = NV(), f = nd(gv('b_f')); if (!f)
-    return; (N.br = N.br || []).push({ f, t: nd(gv('b_t')) }); save(); render(); }
+// Log a break. With no end date it is still going: the book is paused from that date (same as switching its status to paused),
+// and un-pausing later closes it. Kept as a plain open break only for a start in the future or a finished book.
+function logBr() { const N = NV(), f = nd(gv('b_f')), t = nd(gv('b_t')); if (!f)
+    return; if (!t && f <= today() && N.status !== 'completed') {
+    if (N.status !== 'paused')
+        N.status = 'paused';
+    if (!N.pz || f < N.pz)
+        N.pz = f;
+} else
+    (N.br = N.br || []).push({ f, t }); save(); render(); }
 // one pasted line -> {name, total}: "Arc 6, 90" (comma, colon, semicolon or tab); no number = length unknown
 const listRow = s => { const m = s.trim().match(/^(.+?)\s*[,;:\t]\s*(\d+)$/); return s.trim() ? { name: m ? m[1].trim() : s.trim(), total: m ? +m[2] : 0 } : null; };
 // add one section per pasted line inside the open section
