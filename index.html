@@ -24,19 +24,55 @@ h1 { font-size:18px; margin:0 0 14px; }
 .tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
 .tabs button { border:0; background:var(--card); color:var(--mut); font:700 13px inherit; font-family:inherit; padding:8px 14px; border-radius:20px; cursor:pointer; }
 .tabs button.on { background:var(--acc); color:#fff; }
-.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,190px)); justify-content:center; gap:20px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,190px)); justify-content:start; gap:20px; }
 .nv { cursor:pointer; transition:transform .15s; }
 .nv:hover { transform:translateY(-3px); }
 .cv { aspect-ratio:2/3; border-radius:6px; position:relative; overflow:hidden; box-shadow:0 8px 24px rgba(20,40,70,.18); display:flex; align-items:flex-end; padding:12px; color:#fff; }
 .cv .ini { position:absolute; top:8px; right:12px; font-size:56px; font-weight:800; opacity:.18; line-height:1; }
 .cv .ct { font-weight:800; font-size:14px; line-height:1.2; text-shadow:0 2px 8px rgba(0,0,0,.4); position:relative; }
-.chip { position:absolute; top:10px; left:10px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; background:rgba(0,0,0,.35); padding:3px 7px; border-radius:10px; }
 .nv .meta { padding:9px 2px 0; font-size:12.5px; color:var(--mut); }
+.sd { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle; background:#8a97a6; }
+.sd.reading { background:#3db4f2; }
+.sd.completed { background:#4cca51; }
+.sd.paused { background:#f5a623; }
 .nv .meta b { color:var(--tx); font-weight:700; }
 .bar { height:6px; border-radius:4px; background:var(--line); overflow:hidden; margin-top:6px; }
 .bar i { display:block; height:100%; background:var(--acc); border-radius:4px; }
 .bar i.ok { background:var(--ok); }
 .empty { color:var(--mut); text-align:center; padding:50px 0; }
+.empty.sm { padding:16px 0; }
+.pt { fill:transparent; }
+.bd { fill:var(--mut); fill-opacity:.16; }
+.cap { color:var(--mut); font-size:12px; margin-top:4px; }
+.rec { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px; }
+.rc .l { font-size:12px; color:var(--mut); font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+.rc .n { font-size:24px; font-weight:800; color:var(--acc); line-height:1.2; }
+.rc .d { font-size:12.5px; color:var(--mut); }
+.gl { stroke:var(--line); stroke-dasharray:2 5; }
+.gl.b { stroke-dasharray:none; }
+.seg.sm { max-width:240px; margin-bottom:10px; }
+.tlbar.reading { fill:var(--acc); }
+.tlbar.completed { fill:var(--ok); }
+.tlbar.paused { fill:#f5a623; }
+.tln { font-size:12px; }
+.ln { fill:none; stroke:var(--acc); stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+.hv { fill:var(--line); fill-opacity:0; }
+.hv:hover { fill-opacity:.3; }
+.pt.on { fill:var(--acc); stroke:#fff; stroke-width:1.5; }
+.tip { position:fixed; z-index:30; background:var(--nav); color:#fff; font-size:12px; font-weight:700; padding:6px 10px; border-radius:6px; pointer-events:none; white-space:pre; box-shadow:0 4px 14px rgba(0,0,0,.25); }
+.hmw { overflow-x:auto; }
+.hmw svg { margin:0 auto; }
+.hm { fill:var(--line); }
+.hm.s1 { fill:var(--acc); fill-opacity:.3; }
+.hm.s2 { fill:var(--acc); fill-opacity:.55; }
+.hm.s3 { fill:var(--acc); fill-opacity:.8; }
+.hm.s4 { fill:var(--acc); }
+.hmk { display:flex; align-items:center; justify-content:flex-end; gap:4px; font-size:11px; color:var(--mut); margin-top:6px; }
+.hmk i { display:inline-block; width:11px; height:11px; border-radius:2px; background:var(--acc); }
+.hmk i.s0 { background:var(--line); }
+.hmk i.s1 { opacity:.3; }
+.hmk i.s2 { opacity:.55; }
+.hmk i.s3 { opacity:.8; }
 .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:20px; }
 .tile,.panel { background:var(--card); border-radius:8px; padding:16px 18px; box-shadow:0 2px 10px rgba(20,40,70,.05); }
 .tile .n { font-size:28px; font-weight:800; color:var(--acc); line-height:1.1; }
@@ -47,6 +83,12 @@ h1 { font-size:18px; margin:0 0 14px; }
 .ctrl { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
 select,input { font-family:inherit; font-size:14px; color:var(--tx); background:var(--in); border:1px solid var(--line); border-radius:6px; padding:9px 11px; width:100%; }
 .ctrl select { width:auto; background:var(--card); }
+.rg { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
+.rg span { color:var(--mut); font-size:12px; font-weight:700; text-transform:uppercase; }
+.rg input { width:132px; background:var(--card); }
+.rg .ghost { background:var(--card); padding:9px 12px; }
+.rg .ghost.on { background:var(--acc); color:#fff; }
+.rg .ghost:disabled { opacity:.4; cursor:default; }
 svg { width:100%; height:auto; display:block; }
 svg text { fill:var(--mut); font:11px "Overpass",system-ui,sans-serif; }
 .modal { position:fixed; inset:0; background:rgba(8,16,26,.6); z-index:20; display:flex; align-items:flex-start; justify-content:center; padding:calc(30px + env(safe-area-inset-top,0px)) 14px 30px; overflow:auto; }
@@ -311,7 +353,7 @@ let S = { novels: [] };
 const adopt = d => { if (!d || !d.novels)
     throw new Error('not a Novelog data file'); S = d; S.novels.forEach(mig); };
 // screen state, not saved: v=view, f=filter, ed=edit mode, tab, lm=log mode, ld=last logged date, op=open folds
-let ui = { v: 'lib', f: 'all', sel: '', per: 'week', id: '', ed: false, cd: false, tab: 'prog', lm: 'ch' };
+let ui = { v: 'lib', f: 'all', sel: '', per: 'week', share: 'chapters', id: '', ed: false, cd: false, tab: 'prog', lm: 'ch' };
 // nT/nR = total/read chapters of a node (sum of leaves); T/R = same for a whole novel
 const nT = x => x.ch.length ? x.ch.reduce((a, c) => a + nT(c), 0) : x.total, nR = x => x.ch.length ? x.ch.reduce((a, c) => a + nR(c), 0) : x.read, T = n => nT(n.root), R = n => nR(n.root);
 // cnt = counts toward totals (side stories only if xc); tot/rd = total/read of a node under a filter
@@ -328,14 +370,14 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 // fallback cover gradient from a hue
 const grad = h => `linear-gradient(155deg,hsl(${h} 60% 48%),hsl(${(h + 45) % 360} 65% 26%))`;
 // date of the newest log entry of a novel
-const lastD = n => n.log.length ? n.log.map(l => l.d).sort().pop() : '';
+const lastD = n => n.log.reduce((last, l) => l.d > last ? l.d : last, '');
 // per-day chapter counts for a node (feeds every graph)
 function events(id, ps) {
     const e = [];
     S.novels.forEach(n => {
         if (id && n.id !== id)
             return;
-        const pv = {}, dd = {}, pc2 = ppcMap(n), ld = n.log.map(l => l.d).sort(), bk = [...(n.br || []).filter(b => b.f).map(b => ({ f: b.f, t: b.t || ld.find(x => x >= b.f) || today() })), ...(n.status === 'paused' && n.pz ? [{ f: n.pz, t: today() }] : [])], inB = d => bk.some(b => d >= b.f && d <= b.t);
+        const pv = {}, dd = {}, pc2 = ppcMap(n), bk = breakSpans(n), inB = d => bk.some(b => d >= b.f && d <= b.t);
         [...n.log].sort((a, b) => a.d.localeCompare(b.d) || a.c - b.c).forEach(l => { const k = l.p || '', d = Math.max(0, l.c - (pv[k] || 0)), o = dd[l.d] = dd[l.d] || {}; o[k] = (o[k] || 0) + d; pv[k] = l.c; });
         if (!n.log.length && n.status === 'completed' && n.fin)
             dd[n.fin] = Object.fromEntries(allL(n.root).filter(l => !knownIds(n.root).has(l.id)).map(l => [l.id, l.total]));
@@ -356,7 +398,7 @@ function events(id, ps) {
                 let F = L.filter(d => d === D || !inB(d));
                 if (!F.length)
                     F = L;
-                F.forEach(d => e.push({ d, n: m / F.length, pg: pgs / F.length }));
+                F.forEach(d => e.push({ id: n.id, d, n: m / F.length, pg: pgs / F.length }));
             }
             prev = t;
         });
@@ -649,14 +691,16 @@ async function mount(h) {
 }
 function gate(kind, msg) {
     const w = (t, b) => `<div class="panel" style="max-width:540px;margin:40px auto"><h3 style="margin-top:0">${t}</h3>${b}<p>\
-<button class="ghost" onclick="useBrowser()">Use browser storage instead</button></p></div>`;
+<button class="ghost" onclick="useBrowser()">Use browser storage instead</button> <button class="ghost" onclick="$('#jsonUpload').click()">Upload JSON</button>\
+<input id="jsonUpload" type="file" accept=".json,application/json" style="display:none" onchange="this.files[0]&&useBrowser(this.files[0]);this.value=''">\
+</p></div>`;
     $('#app').innerHTML = kind === 'nosupport'
         ? w('Folder saving isn’t available in this browser', '<p>Novelog can keep all your data and covers in a normal folder on your computer. This browser has that switched off. In Brave, open <b>brave://flags</b>, turn on “File System Access API”, and restart. Chrome and Edge work without changes.</p>')
         : kind === 'reconnect'
             ? w('Reconnect your data folder', `<p>Click to let Novelog use “${esc(pendingDir.name)}” again.</p><p>\
 <button class="btn" onclick="reconnect()">Reconnect</button> <button class="ghost" onclick="chooseDir()">Pick a different folder</button></p>`)
             : kind === 'error'
-                ? w('Couldn’t open that folder', `<p>${esc(msg)}</p><p>Nothing was changed.</p><p>\
+                ? w('Couldn’t load that data', `<p>${esc(msg)}</p><p>Nothing was changed.</p><p>\
 <button class="btn" onclick="chooseDir()">Choose folder</button></p>`)
                 : w('Choose your data folder', '<p>Make an empty folder first (inside Documents, for example – the browser won’t accept Documents, Desktop or Downloads themselves). Novelog saves your data, cover pictures and daily backups there.</p>\
 <p><button class="btn" onclick="chooseDir()">Choose folder</button></p>');
@@ -674,16 +718,22 @@ async function chooseDir() {
 }
 async function reconnect() { if (await pendingDir.requestPermission({ mode: 'readwrite' }) === 'granted')
     mount(pendingDir); }
-function useBrowser() {
+// does browser storage already hold saved novels?
+const hasSavedData = () => { try { return JSON.parse(localStorage.getItem(K)).novels.length > 0; } catch (e) { return false; } };
+async function useBrowser(file) {
+    if (file && hasSavedData() && !confirm('This browser already has saved Novelog data. Loading this file will replace it. Continue?'))
+        return;
     STORE.mode = 'browser';
+    let missingImages = false;
     try {
-        adopt(JSON.parse(localStorage.getItem(K)));
-    }
-    catch (e) {
-        adopt(seed());
-    }
+        const d = file ? JSON.parse(await file.text()) : JSON.parse(localStorage.getItem(K));
+        if (file && (!d || !Array.isArray(d.novels))) throw new Error('Choose a Novelog JSON file with a novels list.');
+        adopt(d);
+        if (file) eachImg((o, k) => { if (o[k].startsWith('file:')) { o[k] = ''; missingImages = true; } });
+    } catch (e) { if (file) { STORE.mode = 'none'; return gate('error', e.message); } adopt(seed()); }
     $('header').style.visibility = '';
     boot();
+    if (missingImages) alert('This JSON references image files stored separately in a folder. Uploading JSON cannot include those images.');
 }
 async function start() {
     $('header').style.visibility = 'hidden';
@@ -754,125 +804,621 @@ $('#th').onclick = themeM;
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 applyTheme();
 
-// Graphs and the Stats page: SVG charts (line, bars), stat tiles + panels (core), period selector, statsV (the Stats screen).
-const fmt = t => new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: '2-digit' });
-function nice(m) { if (m <= 0)
-    return 1; const p = Math.pow(10, Math.floor(Math.log10(m))), f = m / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
-function line(pts) {
-    if (pts.length < 2)
-        return '<div class="empty">Log some chapters with dates to see this chart.</div>';
-    const W = 640, H = 220, L = 42, R = 12, T = 12, B = 26;
-    let x0 = pts[0].t, x1 = pts[pts.length - 1].t;
-    if (x1 === x0)
-        x1 = x0 + 864e5;
-    const ym = nice(Math.max(...pts.map(p => p.y))), X = t => L + (t - x0) / (x1 - x0) * (W - L - R), Y = v => T + (1 - v / ym) * (H - T - B);
+// Chart drawing for the Stats page: real-size widths, round axis numbers, smooth curves, and the line / bar / two-line charts.
+// Charts are drawn at the width they will be shown at (chartW), so text stays at its real size. Hover tips: see widgets.js.
+// date label for chart axes and tips (UTC, so a date never shifts a day in US time zones)
+const fmt = t => new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: '2-digit', timeZone: 'UTC' });
+// usable width in pixels inside a chart panel (half = one of two panels side by side); main has 20px sides, a panel 18px
+function chartW(half) {
+    const row = Math.max(520, ($('#app').clientWidth || 1000) - 40);
+    return Math.floor(half ? (row - 18) / 2 - 36 : row - 36);
+}
+// round step for an axis split into 4 equal parts: 1, 2 or 5 times a power of ten (whole numbers only when int)
+function niceStep(max, int) {
+    const raw = max / 4;
+    if (!(raw > 0)) return 1;
+    const p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p, step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p;
+    return int ? Math.max(1, step) : step;
+}
+// axis from 0 to a round maximum, always 4 equal parts so two axes can share the grid lines: {max, step}
+const axis = (max, int) => { const step = niceStep(max, int); return { max: step * 4, step }; };
+// y-axis label: one decimal for small steps, k / M for big numbers
+const tickText = (v, step) => step < 1 ? String(+v.toFixed(1)) : String(fmtN(v));
+// the grid lines and left-hand numbers of a chart (Y maps a value to its height, color tints the numbers)
+function yGrid(ax, left, right, Y, color) {
     let g = '';
-    for (let i = 0; i <= 4; i++) {
-        const v = ym * i / 4, y = Y(v);
-        g += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${L - 6}" y="${y + 4}" text-anchor="end">${+v.toFixed(1)}</text>`;
+    for (let i = 0; i <= (ax.count ?? 4); i++) {
+        const v = (ax.min || 0) + ax.step * i, y = Y(v).toFixed(1);
+        g += `<line class="gl${i ? '' : ' b'}" x1="${left}" x2="${right}" y1="${y}" y2="${y}"/>` +
+            `<text x="${left - 8}" y="${+y + 4}" text-anchor="end"${color ? ` fill="${color}"` : ''}>${tickText(v, ax.step)}</text>`;
     }
-    const d = pts.map((p, i) => (i ? 'L' : 'M') + X(p.t).toFixed(1) + ' ' + Y(p.y).toFixed(1)).join(' ');
-    return `<svg viewBox="0 0 ${W} ${H}"><defs><linearGradient id="ga" x1="0" x2="0" y1="0" y2="1">\
-<stop offset="0" stop-color="var(--acc)" stop-opacity=".35"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs>${g}
-<path d="${d} L${X(x1)} ${H - B} L${X(x0)} ${H - B}Z" fill="url(#ga)"/><path d="${d}" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round"/>
-<text x="${L}" y="${H - 6}">${fmt(x0)}</text><text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">${fmt((x0 + x1) / 2)}</text>\
-<text x="${W - R}" y="${H - 6}" text-anchor="end">${fmt(x1)}</text></svg>`;
+    return g;
 }
-function bars(it, col) {
+// line chart scale: zoom to the data, with round ticks; zero can stay anchored for rates
+function lineAxis(low, high) {
+    const step = niceStep(high - low || Math.max(Math.abs(high) * .1, 1), false), min = low ? Math.floor(low / step) * step : 0;
+    const max = Math.max(min + step, Math.ceil(high / step) * step);
+    return { min, max, step, count: Math.round((max - min) / step) };
+}
+// soft fade under a line, from the colour at the top to nothing at the bottom
+const areaGradient = (id, color) => `<linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1">` +
+    `<stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient>`;
+// SVG path through screen points P=[[x,y],...] as a smooth curve that never overshoots (monotone cubic); a straight line for 2 points
+function smoothPath(P) {
+    const n = P.length;
+    if (n < 2) return '';
+    const h = [], m = [], t = [];
+    for (let i = 0; i < n - 1; i++) { h[i] = P[i + 1][0] - P[i][0]; m[i] = h[i] ? (P[i + 1][1] - P[i][1]) / h[i] : 0; }
+    t[0] = m[0];
+    t[n - 1] = m[n - 2];
+    for (let i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+    for (let i = 0; i < n - 1; i++) {
+        if (!m[i]) { t[i] = t[i + 1] = 0; continue; }
+        const a = t[i] / m[i], b = t[i + 1] / m[i], s = a * a + b * b;
+        if (s > 9) { const k = 3 / Math.sqrt(s); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; }
+    }
+    const f = v => v.toFixed(1);
+    let d = `M${f(P[0][0])} ${f(P[0][1])}`;
+    for (let i = 0; i < n - 1; i++) {
+        d += ` C${f(P[i][0] + h[i] / 3)} ${f(P[i][1] + t[i] * h[i] / 3)} ${f(P[i + 1][0] - h[i] / 3)} ${f(P[i + 1][1] - t[i + 1] * h[i] / 3)}` +
+            ` ${f(P[i + 1][0])} ${f(P[i + 1][1])}`;
+    }
+    return d;
+}
+// about 6 evenly spaced whole days from x0 to x1 for the bottom axis
+function dateTicks(x0, x1) {
+    const n = Math.min(6, Math.max(2, Math.round((x1 - x0) / 864e5) + 1)), out = [];
+    for (let i = 0; i < n; i++) out.push(Math.round((x0 + (x1 - x0) * i / (n - 1)) / 864e5) * 864e5);
+    return out;
+}
+// the date labels under a line chart (first one starts at the left edge, last one ends at the right edge)
+const dateAxis = (ticks, X, y) => ticks.map((t, i) => `<text x="${X(t).toFixed(1)}" y="${y}" ` +
+    `text-anchor="${i === 0 ? 'start' : i === ticks.length - 1 ? 'end' : 'middle'}">${fmt(t)}</text>`).join('');
+// light stripes behind a line chart for break stretches [{f, t, now}], clipped to the chart's dates; hover text is added to the point tip (bandAt, widgets.js)
+const bandRects = (bands, X, x0, x1, top, bottom) => (bands || []).map(b => {
+    const a = Math.max(Date.parse(b.f), x0), z = Math.min(Date.parse(b.t) + 864e5, x1), days = Math.round((Date.parse(b.t) - Date.parse(b.f)) / 864e5) + 1;
+    return z <= a ? '' : `<rect class="bd" x="${X(a).toFixed(1)}" y="${top}" width="${(X(z) - X(a)).toFixed(1)}" height="${bottom - top}" ` +
+        `data-tip="Break: ${fmt(Date.parse(b.f))} – ${b.now ? 'now' : fmt(Date.parse(b.t))} · ${days === 1 ? '1 day' : days + ' days'}"></rect>`;
+}).join('');
+// line chart over dates, pts = [{t, y}]. opts: unit (shown in the hover tip), id (gradient id), smooth (curved instead of straight), bands (break stripes)
+function line(pts, opts) {
+    const o = opts || {};
+    if (pts.length < 2)
+        return '<div class="empty sm">Log some chapters with dates to see this chart.</div>';
+    const W = chartW(), H = 260, L = 46, R = 16, T = 12, B = 28, last = pts[pts.length - 1].t;
+    const x0 = o.from ? Date.parse(o.from + 'T00:00:00Z') : pts[0].t, end = o.to ? Date.parse(o.to + 'T00:00:00Z') : last, x1 = end === x0 ? x0 + 864e5 : end;
+    const low = o.zero ? 0 : Math.min(...pts.map(p => p.y)), high = Math.max(...pts.map(p => p.y)), ax = lineAxis(low, high), id = o.id || 'gl';
+    const X = t => L + (t - x0) / (x1 - x0) * (W - L - R), Y = v => T + (1 - (v - ax.min) / (ax.max - ax.min)) * (H - T - B);
+    const P = pts.map(p => [X(p.t), Y(p.y)]), d = o.smooth ? smoothPath(P) : 'M' + P.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' L');
+    const dots = pts.map((p, i) => `<circle class="pt" cx="${P[i][0].toFixed(1)}" cy="${P[i][1].toFixed(1)}" r="5" ` +
+        `data-tip="${fmt(p.t)} · ${+p.y.toFixed(1)} ${o.unit || ''}"></circle>`).join('');
+    return `<svg class="lc" viewBox="0 0 ${W} ${H}"><defs>${areaGradient(id, 'var(--acc)')}</defs>${yGrid(ax, L, W - R, Y)}${bandRects(o.bands, X, x0, x1, T, H - B)}` +
+        `<path d="${d} L${X(x1).toFixed(1)} ${H - B} L${X(x0).toFixed(1)} ${H - B}Z" fill="url(#${id})"/><path class="ln" d="${d}"/>` +
+        `${dots}${dateAxis(dateTicks(x0, x1), X, H - 8)}</svg>`;
+}
+// bar chart, it = [{l, v}], col = bar colour, half = shown in half-width panel, dec = decimals on the axis; bars are at most 56px wide.
+// Optional per bar: tip (hover text), hi (highlighted in green), part (still in progress: faded, dashed), lab (text above the bar).
+// With many bars the number above each bar is left out (hover for it) and only every few labels under the bars are written.
+function bars(it, col, half, dec) {
     if (!it.length || !it.some(i => i.v))
-        return '<div class="empty">Nothing to show yet.</div>';
-    const W = 640, H = 200, L = 10, B = 24, T = 18, ym = Math.max(...it.map(i => i.v)), bw = (W - L * 2) / it.length;
-    return `<svg viewBox="0 0 ${W} ${H}">` + it.map((b, i) => {
-        const h = (H - T - B) * b.v / ym, x = L + i * bw + bw * .15, w = bw * .7;
-        return `<rect x="${x}" y="${H - B - h}" width="${w}" height="${h}" rx="4" fill="${col || 'var(--acc)'}"/>\
-<text x="${x + w / 2}" y="${H - B - h - 5}" text-anchor="middle">${fmtN(b.v)}</text><text x="${x + w / 2}" y="${H - 8}" text-anchor="middle">${b.l}</text>`;
-    }).join('') + '</svg>';
+        return '<div class="empty sm">Nothing to show yet.</div>';
+    const W = chartW(half), H = 220, L = 40, R = 10, T = 22, B = 26, ax = axis(Math.max(...it.map(i => i.v)), !dec);
+    const Y = v => T + (1 - v / ax.max) * (H - T - B), slot = (W - L - R) / it.length, w = Math.min(56, slot * .6), every = Math.ceil(44 / slot);
+    return `<svg viewBox="0 0 ${W} ${H}">${yGrid(ax, L, W - R, Y)}` + it.map((b, i) => {
+        const x = L + i * slot + (slot - w) / 2, y = Y(b.v), fill = b.hi ? 'var(--ok)' : col || 'var(--acc)';
+        return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${(H - B - y).toFixed(1)}" ` +
+            `rx="5" fill="${fill}"${b.part ? ` fill-opacity=".35" stroke="${fill}" stroke-width="1.5" stroke-dasharray="4 3"` : ''}/>` +
+            (slot < 30 ? '' : `<text x="${(x + w / 2).toFixed(1)}" y="${(y - 6).toFixed(1)}" text-anchor="middle">${b.lab !== undefined ? b.lab : fmtN(b.v)}</text>`) +
+            (i % every ? '' : `<text x="${(x + w / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${b.l}</text>`);
+    }).join('') + it.map((b, i) => b.tip ? `<rect class="hv" x="${(L + i * slot).toFixed(1)}" y="${T}" width="${slot.toFixed(1)}" height="${H - B - T}" ` +
+        `data-tip="${b.tip}"></rect>` : '').join('') + '</svg>';
 }
+// round dots (with a ring in the card colour) at each point of a two-line chart series
+const dualDots = (P, color) => P.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4.5" fill="${color}" ` +
+    `stroke="var(--card)" stroke-width="2"/>`).join('');
+// one series of the two-line chart: faded area, curved line, dots (a single point is just a dot)
+function dualSeries(P, color, id, base) {
+    if (P.length < 2)
+        return dualDots(P, color);
+    const d = smoothPath(P);
+    const end = P[P.length - 1][0].toFixed(1), start = P[0][0].toFixed(1);
+    return `<defs>${areaGradient(id, color)}</defs><path d="${d} L${end} ${base} L${start} ${base}Z" fill="url(#${id})"/>` +
+        `<path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>${dualDots(P, color)}`;
+}
+// two curved lines, one point per year: books (left scale, green) and words (right scale, theme colour); hover a year for both values
+function dual(rows) {
+    if (!rows.some(r => r.a || r.b))
+        return '<div class="empty sm">Nothing to show yet.</div>';
+    const W = chartW(), H = 260, L = 46, R = 60, T = 14, B = 28, pad = 40, n = rows.length, hb = rows.some(r => r.b);
+    const A = axis(Math.max(...rows.map(r => r.a)), true), K = axis(Math.max(...rows.map(r => r.b)), false);
+    const X = i => n > 1 ? L + pad + i * (W - L - R - 2 * pad) / (n - 1) : (L + W - R) / 2;
+    const YA = v => T + (1 - v / A.max) * (H - T - B), YK = v => T + (1 - v / K.max) * (H - T - B), colW = n > 1 ? X(1) - X(0) : W - L - R;
+    let right = '';
+    if (hb)
+        for (let i = 0; i <= 4; i++)
+            right += `<text x="${W - R + 8}" y="${(YK(K.step * i) + 4).toFixed(1)}" fill="var(--acc)">${tickText(K.step * i, K.step)}</text>`;
+    const cols = rows.map((r, i) => `<rect class="hv" x="${(X(i) - colW / 2).toFixed(1)}" y="${T}" ` +
+        `width="${colW.toFixed(1)}" height="${H - T - B}" ` +
+        `data-tip="${r.l}: ${r.a} ${r.a === 1 ? 'book' : 'books'}${hb ? ' · ' + fmtN(r.b) + ' words' : ''}"></rect>`).join('');
+    return `<div class="cnt">\
+<span style="color:var(--ok)">● Books finished (left)</span> &nbsp; <span style="color:var(--acc)">● Words read (right)</span></div>` +
+        `<svg viewBox="0 0 ${W} ${H}">${yGrid(A, L, W - R, YA, 'var(--ok)')}${right}` +
+        `${dualSeries(rows.map((r, i) => [X(i), YA(r.a)]), 'var(--ok)', 'gdb', H - B)}` +
+        `${hb ? dualSeries(rows.map((r, i) => [X(i), YK(r.b)]), 'var(--acc)', 'gdw', H - B) : ''}` +
+        `${rows.map((r, i) => `<text x="${X(i).toFixed(1)}" y="${H - 8}" text-anchor="middle">${r.l}</text>`).join('')}${cols}</svg>`;
+}
+// redraw the Stats screens when the window width changes, so the charts are drawn at the new real size
+let chartResizeTimer;
+addEventListener('resize', () => {
+    clearTimeout(chartResizeTimer);
+    chartResizeTimer = setTimeout(() => { if (ui.v === 'stats' || (ui.v === 'detail' && ui.tab === 'stats')) render(); }, 150);
+});
+
+// Date range for the Stats page: a view setting only (never saved). RG = current From/To ('' = open end), presets, arrows, the bar's HTML.
+const RG = { f: '', t: '' };
+// is a range chosen at all? (both ends open = "All")
+const rgOn = () => !!(RG.f || RG.t);
+// is this day inside the range?
+const inRg = d => (!RG.f || d >= RG.f) && (!RG.t || d <= RG.t);
+// keep only the days of a {day: chapters} object that are inside the range
+const rgDays = byD => Object.fromEntries(Object.entries(byD).filter(([d]) => inRg(d)));
+// set the range from two typed dates; From after To are swapped
+function rgSet(f, t) {
+    f = nd(f);
+    t = nd(t);
+    if (f && t && f > t)
+        [f, t] = [t, f];
+    RG.f = f;
+    RG.t = t;
+}
+// [from, to] a quick button stands for ('' both = All)
+function rgPreset(k) {
+    const t = today(), x = new Date(t + 'T00:00:00Z'), months = { '6m': 6, '3m': 3 }[k];
+    if (k === 'year')
+        return [t.slice(0, 4) + '-01-01', t];
+    if (k === '30d')
+        return [iso(Date.parse(t) - 29 * 864e5), t];
+    if (!months)
+        return ['', ''];
+    x.setUTCMonth(x.getUTCMonth() - months);
+    return [iso(x.getTime() + 864e5), t];
+}
+// first day with any reading (the left end when only To is set)
+const rgFirst = () => (events('')[0] || { d: today() }).d;
+// slide the window back (-1) or forward (1) by its own length; forward stops at today (the length is kept)
+function rgShift(dir) {
+    if (!rgOn())
+        return;
+    const f = RG.f || rgFirst(), t = RG.t || today(), len = Math.round((Date.parse(t) - Date.parse(f)) / 864e5) + 1;
+    const room = Math.round((Date.parse(today()) - Date.parse(t)) / 864e5), step = dir > 0 ? Math.min(len, room) : -len;
+    if (len < 1 || !step)
+        return;
+    RG.f = iso(Date.parse(f) + step * 864e5);
+    RG.t = iso(Date.parse(t) + step * 864e5);
+}
+// what a bar button does
+function rgAct(k) {
+    if (k === 'prev' || k === 'next')
+        return rgShift(k === 'next' ? 1 : -1);
+    const p = rgPreset(k);
+    rgSet(p[0], p[1]);
+}
+// last day the calendar shows: the range's end, never later than today
+const rgEnd = () => RG.t && RG.t < today() ? RG.t : today();
+// days a speed-chart period (key = week's Monday or 'YYYY-MM') is divided by: 7 / 30, or only its days inside the range when it cuts the period
+function perDays(k) {
+    const month = ui.per === 'month', nom = month ? 30 : 7;
+    if (!rgOn())
+        return nom;
+    const a = month ? k + '-01' : k, b = month ? iso(Date.UTC(+k.slice(0, 4), +k.slice(5, 7), 0)) : iso(Date.parse(k) + 6 * 864e5);
+    const lo = RG.f > a ? RG.f : a, hi = RG.t && RG.t < b ? RG.t : b, span = (x, y) => Math.round((Date.parse(y) - Date.parse(x)) / 864e5) + 1;
+    return span(lo, hi) >= span(a, b) ? nom : Math.max(1, span(lo, hi));
+}
+// one quick button; lit when the range is exactly what it stands for
+const rgBtn = (k, label) => { const p = rgPreset(k); return `<button class="ghost d${RG.f === p[0] && RG.t === p[1] ? ' on' : ''}" data-rg="${k}">${label}</button>`; };
+// the bar: From / To boxes, quick buttons, arrows, Reset
+const rgBar = () => `<div class="rg" id="rg"><span>From</span><input type="date" id="rg_f" value="${RG.f}"><span>To</span><input type="date" id="rg_t" value="${RG.t}">\
+${rgBtn('all', 'All')}${rgBtn('year', 'This year')}${rgBtn('6m', '6M')}${rgBtn('3m', '3M')}${rgBtn('30d', '30D')}\
+<button class="ghost d" data-rg="prev" ${rgOn() ? '' : 'disabled'} data-tip="Back by the window length">‹</button>\
+<button class="ghost d" data-rg="next" ${rgOn() ? '' : 'disabled'} data-tip="Forward by the window length">›</button>\
+<button class="ghost d" data-rg="reset">Reset</button></div>`;
+// connect the bar's buttons and date boxes (called by render0 after the screen is drawn)
+function rgWire() {
+    const b = $('#rg');
+    if (!b)
+        return;
+    b.querySelectorAll('[data-rg]').forEach(x => x.onclick = () => { rgAct(x.dataset.rg); render(); });
+    // after a date box commits, redraw once focus has settled and give focus back if the click moved to the other box
+    b.querySelectorAll('input').forEach(i => i.onchange = () => {
+        rgSet($('#rg_f').value, $('#rg_t').value);
+        setTimeout(() => { const k = document.activeElement.id; render(); if (k === 'rg_f' || k === 'rg_t') $('#' + k).focus(); }, 0);
+    });
+}
+
+// Break bands: the stretches a novel (or, on the All view, every active novel at once) was on a break, shaded behind the position and speed charts.
+// Break stretches of one novel [{f, t, now}] as events() sees them: an open break ends at the next log entry (else today = now); a paused book is on break until today
+function breakSpans(n) {
+    const ld = n.log.map(l => l.d).sort();
+    return [...(n.br || []).filter(b => b.f).map(b => { const e = b.t || ld.find(x => x >= b.f); return { f: b.f, t: e || today(), now: !e }; }),
+        ...(n.status === 'paused' && n.pz ? [{ f: n.pz, t: today(), now: true }] : [])];
+}
+// first day a novel counts as in progress ('' = never: planned, or no dates at all)
+const activeFrom = n => n.status === 'planned' ? '' : n.st || n.log.map(l => l.d).filter(d => d >= '1990-01-01').sort()[0] || (n.status === 'completed' ? n.fin : '') || '';
+// last day a novel counts as in progress (a finished book without a date is never counted)
+const activeTo = n => n.status === 'completed' ? n.fin || lastD(n) : '9999-12-31';
+// break stretches to shade: that novel's own, or on the All view only the days when every novel in progress was on break
+function breakBands(nid) {
+    if (nid)
+        return breakSpans(S.novels.find(n => n.id === nid));
+    const ns = S.novels.filter(n => activeFrom(n)), sp = new Map(ns.map(n => [n, breakSpans(n)])), end = Date.parse(today()), out = [];
+    let cur = null;
+    for (let t = Math.max(Date.parse('1990-01-01'), Date.parse(ns.map(activeFrom).sort()[0] || today())); t <= end; t += 864e5) {
+        const d = iso(t), act = ns.filter(n => d >= activeFrom(n) && d <= activeTo(n));
+        if (act.length && act.every(n => sp.get(n).some(b => d >= b.f && d <= b.t))) {
+            if (!cur)
+                out.push(cur = { f: d, t: d, now: false });
+            cur.t = d;
+        }
+        else
+            cur = null;
+    }
+    out.forEach(b => b.now = b.t === today());
+    return out;
+}
+
+// Records panel (personal bests) for the Stats page, from the days you actually logged (all time, not the Stats range).
+// the Monday of the week a day falls in
+const monOf = d => { const x = new Date(d + 'T00:00:00Z'); x.setUTCDate(x.getUTCDate() - (x.getUTCDay() + 6) % 7); return iso(x); };
+// day shown in the records, e.g. Mar 3, 2026
+const recDate = d => new Date(d + 'T00:00:00Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+// biggest total of logged chapters over groups of days (keyOf says which group a day is in): {v, k}, earliest group wins a tie
+function bestOf(byD, keyOf) {
+    const s = {};
+    Object.keys(byD).forEach(d => s[keyOf(d)] = (s[keyOf(d)] || 0) + byD[d]);
+    return Object.keys(s).sort().reduce((b, k) => !b || s[k] > b.v ? { v: s[k], k } : b, null);
+}
+// longest run of consecutive reading days: {n, from, to}
+function bestRun(byD) {
+    let best = { n: 0, from: '', to: '' }, run = 0, prev = 0, from = '';
+    Object.keys(byD).filter(d => byD[d] > 0).sort().forEach(d => {
+        const t = Date.parse(d);
+        run = t - prev === 864e5 ? run + 1 : 1;
+        if (run === 1) from = d;
+        prev = t;
+        if (run > best.n) best = { n: run, from, to: d };
+    });
+    return best;
+}
+// the finished novel read fastest: {n, days} (days from start to finish, both counted); needs a start and a finish day
+function fastestDone() {
+    return S.novels.filter(n => n.status === 'completed' && n.st && (n.fin || lastD(n)))
+        .map(n => ({ n, days: Math.round((Date.parse(n.fin || lastD(n)) - Date.parse(n.st)) / 864e5) + 1 }))
+        .filter(x => x.days > 0).reduce((b, x) => !b || x.days < b.days ? x : b, null);
+}
+// the biggest finished novel: {n, text} (by words; by chapters when no finished novel has a word count)
+function biggestDone() {
+    const done = S.novels.filter(n => n.status === 'completed'), words = done.some(n => n.pages), size = n => words ? n.pages || 0 : dT(n.root);
+    const top = done.reduce((b, n) => !b || size(n) > size(b) ? n : b, null);
+    return top && size(top) ? { n: top, text: words ? fmtN(top.pages) + ' words' : size(top) + ' ch' } : null;
+}
+// one record: small label, big value, date or novel underneath
+const recCell = (label, value, note) => `<div class="rc"><div class="l">${label}</div><div class="n">${value}</div><div class="d">${note}</div></div>`;
+// the Records panel: day, week, month and streak records of byD (all days of this view); finished-novel records only on the All view (all = true)
+function recordsPanel(byD, all) {
+    const day = bestOf(byD, d => d), wk = bestOf(byD, monOf), mo = bestOf(byD, d => d.slice(0, 7)), run = bestRun(byD);
+    const fast = all && fastestDone(), big = all && biggestDone(), ch = v => +v.toFixed(1) + ' ch', days = n => n + (n === 1 ? ' day' : ' days');
+    const month = k => new Date(k + '-01T00:00:00Z').toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' });
+    const cells = [
+        day && recCell('Most chapters in a day', +day.v.toFixed(1), recDate(day.k)),
+        wk && recCell('Best week', ch(wk.v), 'Week of ' + recDate(wk.k)),
+        mo && recCell('Best month', ch(mo.v), month(mo.k)),
+        run.n && recCell('Longest streak', days(run.n), recDate(run.from) + (run.n > 1 ? ' – ' + recDate(run.to) : '')),
+        fast && recCell('Fastest novel finished', days(fast.days), esc(fast.n.t)),
+        big && recCell('Biggest novel finished', big.text, esc(big.n.t))
+    ].filter(Boolean);
+    return cells.length ? `<div class="panel w"><h3>Records</h3><div class="rec">${cells.join('')}</div></div>` : '';
+}
+
+// Chapters per month and Reading by day of the week: two bar panels for the Stats page, from the days you logged inside the Stats range.
+// short and long month names for 'YYYY-MM'
+const monShort = k => new Date(k + '-01T00:00:00Z').toLocaleDateString(undefined, { month: 'short', year: '2-digit', timeZone: 'UTC' });
+const monLong = k => new Date(k + '-01T00:00:00Z').toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' });
+// one bar per month from the range start (or first reading) through its end, best month highlighted, this month marked in progress
+function monthRows(byD) {
+    const ks = Object.keys(byD).sort(), sum = {}, rows = [];
+    if (!ks.length) return rows;
+    ks.forEach(d => sum[d.slice(0, 7)] = (sum[d.slice(0, 7)] || 0) + byD[d]);
+    const keys = [], first = RG.f || ks[0], last = rgEnd().slice(0, 7);
+    for (let y = +first.slice(0, 4), m = +first.slice(5, 7); ; m++) {
+        if (m > 12) { m = 1; y++; }
+        const k = y + '-' + String(m).padStart(2, '0');
+        if (k > last) break;
+        keys.push(k);
+    }
+    const best = Math.max(...keys.map(k => sum[k] || 0));
+    let marked = false;
+    keys.forEach(k => {
+        const v = +(sum[k] || 0).toFixed(1), hi = !marked && v > 0 && v === best, part = k === today().slice(0, 7);
+        marked = marked || hi;
+        const tip = `${monLong(k)} · ${v} ch${part ? ' so far (month in progress)' : ''}${hi ? ' · best month' : ''}`;
+        rows.push({ l: monShort(k), v, hi, part, tip });
+    });
+    return rows;
+}
+// seven bars Monday-Sunday: chapters read per day on average, i.e. the weekday's total divided by how many of that weekday the period has (first reading day or range start .. range end)
+function weekdayRows(byD) {
+    const ks = Object.keys(byD).sort(), names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    if (!ks.length) return [];
+    const tot = Array(7).fill(0), cnt = Array(7).fill(0), wd = d => (new Date(d + 'T00:00:00Z').getUTCDay() + 6) % 7;
+    ks.forEach(d => tot[wd(d)] += byD[d]);
+    for (let t = Date.parse(RG.f || ks[0]); t <= Date.parse(rgEnd()); t += 864e5) cnt[wd(iso(t))]++;
+    const avg = tot.map((v, i) => cnt[i] ? v / cnt[i] : 0), top = avg.indexOf(Math.max(...avg));
+    return names.map((n, i) => {
+        const hi = i === top && avg[i] > 0, a = +avg[i].toFixed(1);
+        return { l: n.slice(0, 3), v: avg[i], hi, lab: String(a), tip: `${n}s · ${a} ch per day on average · ${cnt[i]} ${n}${cnt[i] === 1 ? '' : 's'}${hi ? ' · most' : ''}` };
+    });
+}
+// the two panels (nothing when there is no reading to show)
+const habitPanels = byD => !Object.keys(byD).length ? '' : `<div class="panel w"><h3>Chapters per month</h3>${bars(monthRows(byD), 'var(--acc)')}\
+<div class="cap">Green = best month · faded with a dashed edge = month still in progress</div></div>\
+<div class="panel w"><h3>Reading by day of the week (average chapters per day)</h3>${bars(weekdayRows(byD), 'var(--acc)', false, true)}\
+<div class="cap">Green = the day you read most</div></div>`;
+
+// Novel timeline and Share by novel: two Stats panels for the All novels view. Both follow the Stats range.
+const dayMs = d => Date.parse(d + 'T00:00:00Z');
+// first day a novel was read: its start date or first log entry ('' = unknown)
+const readStart = n => n.st || n.log.map(l => l.d).filter(d => d >= '1990-01-01').sort()[0] || '';
+// timeline rows [{n, f, t, fin, status, breaks}]: started novels with a bar inside the range; the last day is today, or for a completed novel
+// its finish day or its last log entry if that is later (reading went on after the finish date)
+function timelineRows() {
+    const rows = S.novels.filter(n => n.status !== 'planned').map(n => {
+        const f = readStart(n), t = n.status === 'completed' ? [n.fin, lastD(n), f].sort().pop() : today();
+        return f ? { n: n.t, f, t: t < f ? f : t, fin: n.fin, status: n.status, breaks: breakSpans(n) } : null;
+    });
+    const lo = RG.f ? dayMs(RG.f) : -Infinity, hi = RG.t ? dayMs(rgEnd()) : Infinity;
+    return rows.filter(r => r && barSpans(r, lo, hi).length);
+}
+// the stretches of a row that get a bar, in ms: its first to last day minus the recorded breaks, cut to the chart's days x0..x1
+function barSpans(r, x0, x1) {
+    let spans = [{ f: dayMs(r.f), t: dayMs(r.t) }];
+    (r.breaks || []).forEach(b => {
+        const from = dayMs(b.f), to = dayMs(b.t);
+        spans = spans.flatMap(s => to < s.f || from > s.t ? [s] : [
+            ...(from > s.f ? [{ f: s.f, t: from - 864e5 }] : []),
+            ...(to < s.t ? [{ f: to + 864e5, t: s.t }] : [])
+        ]);
+    });
+    return spans.map(s => ({ f: Math.max(s.f, x0), t: Math.min(s.t, x1) })).filter(s => s.f <= s.t);
+}
+// hover text of one timeline row: start, finish (or "through"), days it took with both ends counted
+function timelineTip(r) {
+    const days = Math.round((dayMs(r.t) - dayMs(r.f)) / 864e5) + 1;
+    const again = r.fin && r.t > r.fin, end = r.status !== 'completed' ? 'Through ' + recDate(r.t) : again ? 'Finished ' + recDate(r.fin) + ' · read again until ' + recDate(r.t) : 'Finished ' + recDate(r.t);
+    return `Started ${recDate(r.f)} · ${end} · ${days} ${days === 1 ? 'day' : 'days'} · ${r.status}`;
+}
+// date grid lines and labels along the timeline
+function timelineGrid(ticks, X, top, bottom) {
+    return ticks.map((t, i) => {
+        const x = X(t).toFixed(1), side = i === 0 ? 'start' : i === ticks.length - 1 ? 'end' : 'middle';
+        return `<line class="gl" x1="${x}" x2="${x}" y1="${top}" y2="${bottom}"/>` +
+            `<text x="${x}" y="${bottom + 21}" text-anchor="${side}">${fmt(t)}</text>`;
+    }).join('');
+}
+// one timeline row: the novel's name, then its bars
+function timelineRow(r, i, X, x0, x1) {
+    const y = 10 + i * 30 + 4, tip = esc(timelineTip(r)), cut = r.n.length > 24, label = cut ? r.n.slice(0, 23) + '…' : r.n;
+    const bars = barSpans(r, x0, x1).map(s => `<rect class="tlbar ${r.status}" x="${X(s.f).toFixed(1)}" y="${y}" ` +
+        `width="${Math.max(2, X(s.t + 864e5) - X(s.f)).toFixed(1)}" height="16" rx="5" ` +
+        `data-start="${iso(s.f)}" data-end="${iso(s.t)}" data-tip="${tip}"/>`).join('');
+    return `<text class="tln" data-name="${esc(r.n)}"${cut ? ` data-tip="${esc(r.n)}"` : ''} x="8" y="${y + 14}">${esc(label)}</text>${bars}`;
+}
+// the timeline chart: one status-coloured bar per novel, with gaps for breaks; from / to = the range's ends ('' = fit the novels)
+function timeline(rows, from, to) {
+    if (!rows.length)
+        return `<div class="empty sm">${rgOn() ? 'No novels were being read in this date range.' : 'Add a start date or reading log to see your timeline.'}</div>`;
+    rows = [...rows].sort((a, b) => a.f.localeCompare(b.f) || a.n.localeCompare(b.n));
+    const W = chartW(), L = 190, R = 16, H = 10 + rows.length * 30 + 28, x0 = dayMs(from || rows[0].f);
+    const last = dayMs(to || rows.reduce((m, r) => r.t > m ? r.t : m, rows[0].t)), x1 = last + 864e5;
+    const X = t => L + (t - x0) / (x1 - x0) * (W - L - R), ticks = x0 >= last ? [x0] : dateTicks(x0, last);
+    const bars = rows.map((r, i) => timelineRow(r, i, X, x0, last)).join('');
+    return `<svg class="tl" viewBox="0 0 ${W} ${H}">${timelineGrid(ticks, X, 10, H - 28)}${bars}</svg>`;
+}
+// the Novel timeline panel
+function novelTimeline() {
+    const key = ['reading', 'completed', 'paused'].map(s => `<i class="sd ${s}"></i>${s[0].toUpperCase() + s.slice(1)}`).join(' &nbsp; ');
+    return `<div class="panel w"><h3>Novel timeline</h3>${timeline(timelineRows(), RG.f, rgOn() ? rgEnd() : '')}<div class="cap">${key}</div></div>`;
+}
+// each novel's chapters (or words) read in the range: the 5 biggest by name, the rest as one "Other" row (only when it covers 2 or more novels)
+function shareRows(ev, words) {
+    const by = new Map(S.novels.map(n => [n.id, { l: n.t, v: 0 }]));
+    ev.forEach(e => { if (by.has(e.id)) by.get(e.id).v += words ? e.pg : e.n; });
+    const all = [...by.values()].map(r => ({ ...r, v: Math.round(r.v) })).filter(r => r.v > 0).sort((a, b) => b.v - a.v), rest = all.slice(5);
+    return all.length <= 6 ? all : [...all.slice(0, 5), { l: 'Other', v: rest.reduce((s, r) => s + r.v, 0), count: rest.length }];
+}
+// one share row: name, bar, percent and amount
+function shareRow(r, total, words) {
+    const pct = (r.v / total * 100).toFixed(1), more = r.count ? ` (${r.count} smaller novels)` : '';
+    const tip = `${r.l}${more} · ${fmtN(r.v)} ${words ? 'words' : 'chapters'} · ${pct}%`;
+    return `<div class="cr"><span title="${esc(r.l)}">${esc(r.l)}</span><div class="bar" data-tip="${esc(tip)}"><i style="width:${pct}%"></i></div>` +
+        `<span>${pct}% · ${fmtN(r.v)} ${words ? 'words' : 'ch'}</span></div>`;
+}
+// the Chapters / Words switch
+const shareSwitch = words => `<div class="seg sm">` +
+    `<button data-share="chapters" aria-pressed="${!words}" class="${words ? '' : 'on'}" onclick="ui.share='chapters';render()">Chapters</button>` +
+    `<button data-share="words" aria-pressed="${words}" class="${words ? 'on' : ''}" onclick="ui.share='words';render()">Words</button></div>`;
+// the Share by novel panel
+function shareByNovel(ev) {
+    const words = ui.share === 'words', rows = shareRows(ev, words), total = rows.reduce((s, r) => s + r.v, 0);
+    const none = `<div class="empty sm">${rgOn() ? 'No reading in this date range.' : 'No reading logged yet.'}</div>`;
+    const list = rows.length ? rows.map(r => shareRow(r, total, words)).join('') : none;
+    return `<div class="panel w"><h3>Share by novel</h3>${shareSwitch(words)}${list}</div>`;
+}
+
+// The Stats page: stat tiles + graph panels (core), period selector, statsV (the Stats screen). Chart drawing lives in charts.js.
 const perSel = () => `<select id="per"><option value="week" ${ui.per === 'week' ? 'selected' : ''}>Per week</option>\
 <option value="month" ${ui.per === 'month' ? 'selected' : ''}>Per month</option></select>`;
 function core(nid, node) {
-    const all = S.novels, N = nid ? all.find(n => n.id === nid) : null, ev = events(nid, node ? ids(node) : null), sel = N ? [N] : all;
+    const all = S.novels, N = nid ? all.find(n => n.id === nid) : null, evAll = events(nid, node ? ids(node) : null), ev = evAll.filter(e => inRg(e.d)), sel = N ? [N] : all;
     const fin = sel.filter(n => n.status === 'completed').length, ch = node ? nR(node) - knownRead(N, node) : sel.reduce((a, n) => a + R(n) - knownRead(n, n.root), 0), pg = sel.reduce((a, n) => { const q = ppcMap(n), k = knownIds(n.root); return a + allL(node || n.root).filter(l => !k.has(l.id)).reduce((z, l) => z + l.read * (q[l.id] || 0), 0); }, 0);
-    const evn = ev.reduce((a, e) => a + e.n, 0), days = new Set(ev.filter(e => e.n > 0).map(e => e.d)).size, byD = {};
-    ev.forEach(e => byD[e.d] = (byD[e.d] || 0) + e.n);
-    const ds = Object.keys(byD).sort();
+    const evn = ev.reduce((a, e) => a + e.n, 0), evp = ev.reduce((a, e) => a + e.pg, 0), days = new Set(ev.filter(e => e.n > 0).map(e => e.d)).size, byAll = {};
+    evAll.forEach(e => byAll[e.d] = (byAll[e.d] || 0) + e.n);
+    const logAll = loggedDays(nid, node ? ids(node) : null), logD = rgDays(logAll);
     const sts = node && node !== N.root ? [] : sel.map(n => n.st).filter(Boolean).map(x => Date.parse(x));
-    let c = 0;
-    const pos = [];
-    if (ds.length) {
-        const t0 = Date.parse(ds[0]), t1 = Date.parse(ds[ds.length - 1]);
-        pos.push({ t: Math.min(t0, ...sts) - (sts.length ? 0 : 864e5), y: 0 });
-        for (let t = t0; t <= t1; t += 864e5) {
-            c += byD[iso(t)] || 0;
-            pos.push({ t, y: c });
-        }
-    }
-    const key = d => { if (ui.per === 'month')
-        return d.slice(0, 7); const x = new Date(d + 'T00:00:00Z'); x.setUTCDate(x.getUTCDate() - (x.getUTCDay() + 6) % 7); return iso(x); };
-    const sp = {};
-    ev.forEach(e => { const k = key(e.d); sp[k] = (sp[k] || 0) + e.n; });
-    const seq = [];
-    if (ds.length)
-        for (let t = Date.parse(ds[0]); t <= Date.parse(ds[ds.length - 1]); t += 864e5) {
-            const k = key(iso(t));
-            if (seq[seq.length - 1] !== k)
-                seq.push(k);
-        }
-    const spd = seq.map(k => ({ t: Date.parse(ui.per === 'month' ? k + '-01' : k), y: (sp[k] || 0) / (ui.per === 'month' ? 30 : 7) }));
+    const chV = rgOn() ? evn : ch, pgV = rgOn() ? evp : pg, none = rgOn() && !ev.length, pos = posPts(byAll, sts), spd = spdPts(ev), bands = breakBands(nid);
     const ny = {};
     S.novels.forEach(n => { if (n.status !== 'completed')
-        return; const d = n.fin || lastD(n), y = d ? d.slice(0, 4) : 'Undated'; ny[y] = (ny[y] || 0) + 1; });
+        return; const d = n.fin || lastD(n), y = d ? d.slice(0, 4) : 'Undated'; if (rgOn() && !(d && inRg(d)))
+        return; ny[y] = (ny[y] || 0) + 1; });
     const py = {};
     ev.forEach(e => { const y = e.d.slice(0, 4); py[y] = (py[y] || 0) + e.pg; });
     const ks = o => Object.keys(o).sort(), bk = !node || node === N.root;
     return `<div class="tiles"><div class="tile"><div class="n">${N ? Math.round(node ? pc(node) : pct(N)) + '%' : fin}</div>\
-<div class="l">${N ? 'Complete' : 'Finished'}</div></div><div class="tile"><div class="n">${Math.round(ch)}</div><div class="l">Chapters read</div>\
-</div><div class="tile"><div class="n">${pg ? fmtN(pg) : '—'}</div><div class="l">Words read</div></div><div class="tile">\
-<div class="n">${days ? (evn / days).toFixed(1) : '0'}</div><div class="l">Ch / active day</div></div>${bk ? bookTile(sel, N) : ''}</div>
-<div class="panels"><div class="panel w"><h3>Position over time (chapters)</h3>${line(pos)}</div><div class="panel w"><h3>Speed over time (chapters per day, ${ui.per === 'month' ? 'monthly' : 'weekly'} average)</h3>${line(spd)}</div>${bk ? yearPanel(sel, py) : ''}
-${N ? '' : `<div class="panel">\
-<h3>Novels finished per year</h3>${bars(ks(ny).map(k => ({ l: k, v: ny[k] })), 'var(--ok)')}</div>`}${Object.values(py).some(v => v > 0) ? `<div class="panel ${N ? 'w' : ''}"><h3>Words read per year</h3>${bars(ks(py).map(k => ({ l: k, v: py[k] })), '#c063ff')}</div>` : ''}${N ? '' : cmpH()}</div>`;
+<div class="l">${N ? 'Complete' : 'Finished'}</div></div><div class="tile"><div class="n">${Math.round(chV)}</div><div class="l">Chapters read</div>\
+</div><div class="tile"><div class="n">${pgV ? fmtN(pgV) : '—'}</div><div class="l">Words read</div></div><div class="tile">\
+<div class="n">${days ? (evn / days).toFixed(1) : '0'}</div><div class="l">Ch / active day</div></div>${streakTiles(logD, logAll)}${bk ? bookTile(sel, N) : ''}</div>
+<div class="panels">${none ? '<div class="panel w empty">No reading logged in this date range.</div>' : `${heatPanel(logD)}<div class="panel w"><h3>Position over time (chapters)</h3>${line(pos, { unit: 'ch', id: 'gpos', bands, from: RG.f, to: rgOn() ? rgEnd() : '' })}</div>\
+<div class="panel w"><h3>Speed over time (chapters per day, ${ui.per === 'month' ? 'monthly' : 'weekly'} average)</h3>${line(spd, { unit: 'ch/day', id: 'gspd', smooth: true, bands, zero: true, from: RG.f, to: rgOn() ? rgEnd() : '' })}</div>${recordsPanel(logAll, !N)}${habitPanels(logD)}${!N && !node ? novelTimeline() + shareByNovel(ev) : ''}${bk ? yearPanel(sel, py) : ''}
+${N || (rgOn() && !ks(ny).length) ? '' : `<div class="panel">\
+<h3>Novels finished per year</h3>${bars(ks(ny).map(k => ({ l: k, v: ny[k] })), 'var(--ok)', true)}</div>`}${Object.values(py).some(v => v > 0) ? `<div class="panel ${N ? 'w' : ''}"><h3>Words read per year</h3>${bars(ks(py).map(k => ({ l: k, v: py[k] })), 'var(--acc)', !N)}</div>` : ''}`}${N ? '' : cmpH()}</div>`;
+}
+// start day of the week (Monday) or the month ('YYYY-MM') a day falls in: the key of the speed chart's periods
+const perKey = d => ui.per === 'month' ? d.slice(0, 7) : monOf(d);
+// position chart points: chapters read up to the end of each day. A range only hides the days outside it, so the line starts at the real position
+function posPts(byAll, sts) {
+    const ds = Object.keys(byAll).sort(), pos = [];
+    if (!ds.length)
+        return pos;
+    const t0 = Date.parse(ds[0]), t1 = Date.parse(ds[ds.length - 1]), tz = Math.min(t0, ...sts) - (sts.length ? 0 : 864e5);
+    let c = 0;
+    if (inRg(iso(tz)))
+        pos.push({ t: tz, y: 0 });
+    for (let t = t0; t <= t1; t += 864e5) {
+        c += byAll[iso(t)] || 0;
+        if (inRg(iso(t)))
+            pos.push({ t, y: c });
+    }
+    return pos;
+}
+// speed chart points (chapters per day, one per week / month); a period the range cuts is divided by its days inside the range
+function spdPts(ev) {
+    const sp = {}, seq = [];
+    ev.forEach(e => { const k = perKey(e.d); sp[k] = (sp[k] || 0) + e.n; });
+    if (ev.length)
+        for (let t = Date.parse(ev[0].d); t <= Date.parse(ev[ev.length - 1].d); t += 864e5) {
+            const k = perKey(iso(t));
+            if (seq[seq.length - 1] !== k)
+                seq.push(k);
+        }
+    return seq.map(k => ({ t: Date.parse(ui.per === 'month' ? k + '-01' : k), y: (sp[k] || 0) / perDays(k) }));
 }
 // stat tile: books finished this year (all novels) or in this novel when it counts sections as books
 const bookTile = (sel, N) => { const b = booksDone(sel), y = today().slice(0, 4), n = N ? b.length : b.filter(x => x.d.startsWith(y)).length;
     return N && !(N.bl || 0) ? '' : `<div class="tile"><div class="n">${n}</div><div class="l">${N ? 'Books finished' : 'Books this year'}</div></div>`; };
-// two lines on one chart, one point per year: books (left scale, whole numbers) and words (right scale), each with its own scale
-function dual(rows) {
-    if (!rows.some(r => r.a || r.b))
-        return '<div class="empty">Nothing to show yet.</div>';
-    const W = 640, H = 230, L = 40, R = 52, T = 14, B = 28, n = rows.length, hb = rows.some(r => r.b), am = Math.max(4, Math.ceil(Math.max(...rows.map(r => r.a)) / 4) * 4), bm = nice(Math.max(...rows.map(r => r.b)));
-    const X = i => n > 1 ? L + 24 + i * (W - L - R - 48) / (n - 1) : (L + W - R) / 2, YA = v => T + (1 - v / am) * (H - T - B), YB = v => T + (1 - v / bm) * (H - T - B);
-    let g = '';
-    for (let i = 0; i <= 4; i++)
-        g += `<line x1="${L}" x2="${W - R}" y1="${YA(am * i / 4)}" y2="${YA(am * i / 4)}" stroke="var(--line)"/><text x="${L - 6}" y="${YA(am * i / 4) + 4}" text-anchor="end" fill="var(--ok)">${+(am * i / 4).toFixed(1)}</text>${hb ? `<text x="${W - R + 6}" y="${YA(am * i / 4) + 4}" fill="#c063ff">${fmtN(bm * i / 4)}</text>` : ''}`;
-    const path = (f, c) => `<path d="${rows.map((r, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + f(r).toFixed(1)).join(' ')}" fill="none" stroke="${c}" stroke-width="2.5" stroke-linejoin="round"/>${rows.map((r, i) => `<circle cx="${X(i)}" cy="${f(r)}" r="4" fill="${c}"/>`).join('')}`;
-    return `<div class="cnt">\
-<span style="color:var(--ok)">● Books finished (left)</span> &nbsp; <span style="color:#c063ff">● Words read (right)</span></div><svg viewBox="0 0 ${W} ${H}">${g}${path(r => YA(r.a), 'var(--ok)')}${hb ? path(r => YB(r.b), '#c063ff') : ''}${rows.map((r, i) => `<text x="${X(i)}" y="${H - 8}" text-anchor="middle">${r.l}</text>`).join('')}</svg>`;
-}
 // panel: finished books and words read per year (py = words per year) from the first to the last year with data
 function yearPanel(sel, py) {
     const by = {};
-    booksDone(sel).forEach(b => { if (b.d)
+    booksDone(sel).forEach(b => { if (b.d && inRg(b.d))
         by[b.d.slice(0, 4)] = (by[b.d.slice(0, 4)] || 0) + 1; });
     const ys = [...Object.keys(by), ...Object.keys(py).filter(y => py[y] > 0)].map(Number).filter(Boolean), rows = [];
+    if (!ys.length && rgOn())
+        return '';
     for (let y = Math.min(...ys); y <= Math.max(...ys); y++)
         rows.push({ l: String(y), a: by[y] || 0, b: py[y] || 0 });
     return `<div class="panel w"><h3>Books and words per year</h3>${dual(rows)}</div>`;
 }
-function statsV() { return `<h1>Stats</h1><div class="ctrl"><select id="sel"><option value="">All novels</option>${S.novels.map(n => `<option value="${n.id}" ${ui.sel === n.id ? 'selected' : ''}>${esc(n.t)}</option>`).join('')}</select>${perSel()}</div>` + core(ui.sel, null); }
+function statsV() { return `<h1>Stats</h1><div class="ctrl"><select id="sel"><option value="">All novels</option>${S.novels.map(n => `<option value="${n.id}" ${ui.sel === n.id ? 'selected' : ''}>${esc(n.t)}</option>`).join('')}</select>${perSel()}</div>` + rgBar() + core(ui.sel, null); }
+
+// Reading calendar (heatmap of chapters per day: the 53 weeks up to the end of the Stats range, fewer if the range is shorter) and reading-day streaks. Used by core() on the Stats page.
+// Both use the days you actually logged (loggedDays), not events(), which spreads a log over the days since the previous one.
+const HM_WEEKS = 53;
+// chapters read on each day that has a log entry (id = one novel or all, ps = only these leaf ids); novels without a log add nothing
+function loggedDays(id, ps) {
+    const byD = {};
+    S.novels.filter(n => !id || n.id === id).forEach(n => {
+        const pv = {};
+        [...n.log].sort((a, b) => a.d.localeCompare(b.d) || a.c - b.c).forEach(l => {
+            const k = l.p || '', d = Math.max(0, l.c - (pv[k] || 0));
+            pv[k] = l.c;
+            if (d > 0 && l.d >= '1990-01-01' && (!ps || ps.includes(k))) byD[l.d] = (byD[l.d] || 0) + d;
+        });
+    });
+    return byD;
+}
+// {cur, best}: best = longest run of consecutive reading days; cur = the run ending today (or yesterday if today isn't logged yet)
+function streaks(byD) {
+    const days = new Set(Object.keys(byD).filter(d => byD[d] > 0));
+    let t = Date.parse(today()), cur = 0;
+    if (!days.has(iso(t)))
+        t -= 864e5;
+    while (days.has(iso(t))) { cur++; t -= 864e5; }
+    return { cur, best: bestRun(byD).n };
+}
+// the streak stat tiles: Day streak (only when the range includes today; always counted over all days) and Best streak (within the range)
+const streakTiles = (byD, byAll) => (inRg(today()) ? `<div class="tile"><div class="n">${streaks(byAll).cur}</div><div class="l">Day streak</div></div>` : '') +
+    `<div class="tile"><div class="n">${streaks(byD).best}</div><div class="l">Best streak</div></div>`;
+// shade 0-4 for a day's chapter count, from the quartiles of all reading days (one huge day doesn't wash out the rest)
+const shadeFor = (v, cuts) => v <= 0 ? 0 : 1 + cuts.filter(c => v > c).length;
+// month names above the calendar columns (skips a name that would sit too close to the previous one)
+function heatMonths(start, step, left, weeks) {
+    let out = '', lastM = '', lastW = -9;
+    for (let w = 0; w < weeks; w++) {
+        const t = start + w * 7 * 864e5, m = iso(t).slice(0, 7);
+        if (m === lastM || (w - lastW < 3 && lastW >= 0) || w > weeks - 3) { lastM = m; continue; }
+        out += `<text x="${left + w * step}" y="10">${new Date(t).toLocaleDateString(undefined, { month: 'short', timeZone: 'UTC' })}</text>`;
+        lastM = m; lastW = w;
+    }
+    return out;
+}
+// the calendar itself: one square per day, Monday-first columns, shaded by chapters read, hover shows the exact count
+function heatmap(byD) {
+    const vals = Object.values(byD).filter(v => v > 0).sort((a, b) => a - b);
+    if (!vals.length) return '<div class="empty sm">Log some chapters with dates to see your reading calendar.</div>';
+    const cuts = [.25, .5, .75].map(p => vals[Math.floor(p * (vals.length - 1))]);
+    const end = Date.parse(rgEnd()), mon = end - ((new Date(end).getUTCDay() + 6) % 7) * 864e5, first = RG.f ? Date.parse(RG.f) : 0;
+    const weeks = RG.f ? Math.max(1, Math.min(HM_WEEKS, Math.round((mon - (first - ((new Date(first).getUTCDay() + 6) % 7) * 864e5)) / (7 * 864e5)) + 1)) : HM_WEEKS;
+    const start = mon - (weeks - 1) * 7 * 864e5;
+    const step = Math.max(11, Math.min(17, Math.floor((chartW() - 28) / HM_WEEKS))), C = step - 3, left = 28, top = 16;
+    let cells = '';
+    for (let w = 0; w < weeks; w++) for (let r = 0; r < 7; r++) {
+        const t = start + (w * 7 + r) * 864e5;
+        if (t > end || t < first) continue;
+        const d = iso(t), v = byD[d] > 0 ? byD[d] : 0;
+        const day = new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+        cells += `<rect class="hm s${shadeFor(v, cuts)}" x="${left + w * step}" y="${top + r * step}" width="${C}" height="${C}" rx="2" ` +
+            `data-tip="${v ? v + (v === 1 ? ' chapter' : ' chapters') : 'No reading'} · ${day}"></rect>`;
+    }
+    const labels = ['Mon', 'Wed', 'Fri'].map((n, i) => `<text x="0" y="${top + i * 2 * step + 9}">${n}</text>`).join('');
+    const key = [0, 1, 2, 3, 4].map(s => `<i class="hm s${s}"></i>`).join('');
+    const vw = left + weeks * step, vh = top + 7 * step;
+    return `<div class="hmw">\
+<svg viewBox="0 0 ${vw} ${vh}" style="width:${vw}px;height:${vh}px">${heatMonths(start, step, left, weeks)}${labels}${cells}</svg></div>` +
+        `<div class="hmk">Less ${key} More</div>`;
+}
+// full-width panel for the Stats page
+const heatPanel = byD => `<div class="panel w"><h3>Reading calendar</h3>${heatmap(byD)}</div>`;
 
 // Home screen: novel grid (libV), opening / adding / leaving a novel, +1 chapter button, comparison, backup & import window.
 // first line under a card: author in bold; with a cover picture (which hides the title) bold title, then the author in regular text
 const cardName = n => n.img ? `<b>${esc(n.t)}</b> · ${esc(n.a || 'Unknown author')}` : `<b>${esc(n.a || 'Unknown author')}</b>`;
+// small coloured dot for a novel's status (hover shows the word); replaces the badge that used to sit on the cover
+const statusDot = n => `<i class="sd ${n.status}" data-tip="${n.status[0].toUpperCase()}${n.status.slice(1)}${n.on ? ' · ongoing' : ''}"></i>`;
+// second line under a card: parts, then "Not started" / "Completed" / "Ch read / total · percent"
+function cardCount(n) {
+    const count = mainCount(n.root), parts = count ? count + ' ' + (count === 1 ? (n.root.u || 'part') : (n.root.up || 'parts')) + ' · ' : '';
+    const r = dR(n.root), t = dT(n.root), on = n.on ? ' · ongoing' : '';
+    if (!r) return parts + (n.status === 'completed' ? 'Completed' : 'Not started') + on;
+    const p = t && n.status !== 'completed' ? ' · ' + (pct(n) < 1 ? '<1' : Math.round(pct(n))) + '%' : '';
+    return parts + `Ch ${r}${t ? ' / ' + t : ''}${p}` + on;
+}
 function libV() {
     const l = S.novels.filter(n => ui.f === 'all' || n.status === ui.f);
     const TB = [['all', 'All'], ['reading', 'Reading'], ['completed', 'Completed'], ['planned', 'Planned'], ['paused', 'Paused']];
     return `<h1>My Novels</h1><div class="tabs">${TB.map(t => `<button data-f="${t[0]}" class="${ui.f === t[0] ? 'on' : ''}">${t[1]}</button>`).join('')}</div>` +
         (l.length ? `<div class="grid">${l.map(n => `<div class="nv" onclick="open_('${n.id}')">\
 <div class="cv" style="background:${n.img ? `url('${n.img}') center/cover` : grad(n.hue)}">\
-<span class="chip">${n.status}${n.on ? ' · ongoing' : ''}</span>${n.status === 'completed' ? '' : `<div class="qb" onclick="event.stopPropagation();bump('${n.id}')">${dR(n.root)}${dT(n.root) ? ' / ' + dT(n.root) : ''} +</div>`}${n.img ? '' : `<span class="ini">${esc(n.t.charAt(0))}</span><span class="ct">${esc(n.t)}</span>`}</div>
-<div class="meta">${cardName(n)}\
-<br>${mainCount(n.root) ? mainCount(n.root) + ' ' + (mainCount(n.root) === 1 ? (n.root.u || 'part') : (n.root.up || 'parts')) + ' · ' : ''}Ch ${dR(n.root)}${dT(n.root) ? ' / ' + dT(n.root) : ''}<div class="bar">\
+${n.status === 'completed' ? '' : `<div class="qb" onclick="event.stopPropagation();bump('${n.id}')">${dR(n.root)}${dT(n.root) ? ' / ' + dT(n.root) : ''} +</div>`}${n.img ? '' : `<span class="ini">${esc(n.t.charAt(0))}</span><span class="ct">${esc(n.t)}</span>`}</div>
+<div class="meta">${statusDot(n)}${cardName(n)}\
+<br>${cardCount(n)}<div class="bar">\
 <i class="${n.status === 'completed' ? 'ok' : ''}" style="width:${n.status === 'completed' && !mT(n.root) ? 100 : pct(n)}%"></i></div></div></div>`).join('')}</div>` : '<div class="empty">Nothing here yet. Hit + Add.</div>');
 }
 function open_(id) { ui.id = id; ui.v = 'detail'; ui.ed = false; ui.cd = false; ui.tab = 'prog'; ui.ld = ''; PATH = []; render(); scrollTo(0, 0); }
@@ -1029,6 +1575,39 @@ document.addEventListener('pointerdown', e => { if (CAL && !CAL.contains(e.targe
 document.addEventListener('keydown', e => { if (e.key === 'Enter') { ENT = 1; setTimeout(() => ENT = 0); } }, true);
 // Remember which field just committed a change (for the length of this event) so render() can tell "clicked into another box" from "still editing"
 document.addEventListener('change', e => { CH = e.target; setTimeout(() => CH = null); }, true);
+// Hover tip: any element with data-tip shows its text in a small box next to the pointer (instant, unlike the browser's own title tip)
+const TIP = document.body.appendChild(Object.assign(document.createElement('div'), { className: 'tip', hidden: true }));
+// put the tip next to the pointer, kept inside the window
+function tipShow(text, e) {
+    TIP.textContent = text;
+    TIP.hidden = false;
+    const w = TIP.offsetWidth, h = TIP.offsetHeight;
+    TIP.style.left = Math.min(innerWidth - w - 8, Math.max(8, e.clientX - w / 2)) + 'px';
+    TIP.style.top = (e.clientY > h + 24 ? e.clientY - h - 14 : e.clientY + 18) + 'px';
+}
+// hide the tip and un-highlight the chart point
+function tipHide() { TIP.hidden = true; document.querySelectorAll('.pt.on').forEach(c => c.classList.remove('on')); }
+// the point of a line chart closest (left-right) to the pointer
+function nearestPoint(svg, e) {
+    const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * svg.viewBox.baseVal.width;
+    let best = null, gap = Infinity;
+    svg.querySelectorAll('.pt').forEach(c => { const d = Math.abs(c.cx.baseVal.value - x); if (d < gap) { gap = d; best = c; } });
+    return best;
+}
+// the break stripe under the pointer (left-right) on a line chart, if any
+const bandAt = (svg, e) => [...svg.querySelectorAll('.bd')].find(b => { const r = b.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right; });
+// line charts snap to the nearest point anywhere over the chart (inside a break stripe the tip adds the break); everything else uses the element under the pointer
+document.addEventListener('mousemove', e => {
+    const svg = e.target.closest('svg.lc'), el = svg ? nearestPoint(svg, e) : e.target.closest('[data-tip]');
+    document.querySelectorAll('.pt.on').forEach(c => c !== el && c.classList.remove('on'));
+    if (!el) return tipHide();
+    if (svg) el.classList.add('on');
+    const bd = svg && bandAt(svg, e);
+    tipShow(el.getAttribute('data-tip') + (bd ? '\n' + bd.getAttribute('data-tip') : ''), e);
+});
+document.addEventListener('mousedown', tipHide);
+document.addEventListener('scroll', tipHide, true);
+document.addEventListener('mouseout', e => { if (!e.relatedTarget) tipHide(); });
 
 // Picture intake. Covers are 2:3 and banners 19:4 (shape only; W x H below are the shape, not a size limit). Pictures keep full resolution; a right-shaped JPEG is kept byte-for-byte (no re-encode);
 // any other shape opens a crop window (the original is kept for re-crop; drag the frame, zoom with the slider or mouse wheel) so you pick the part that shows.
@@ -1265,7 +1844,7 @@ ${detStats(N, x)}
 ${brk(N)}${detBar(x)}
 ${ed ? detEdit(N, x) : ''}</div></div>
 ${detTabs()}
-${ui.tab === 'stats' ? `<div class="ctrl">${perSel()}</div>${core(N.id, x)}` : detCols(N, x, ed)}`;
+${ui.tab === 'stats' ? `<div class="ctrl">${perSel()}</div>${rgBar()}${core(N.id, x)}` : detCols(N, x, ed)}`;
 }
 const detBanner = N => N.banner ? `<div class="bnr" style="background-image:url('${N.banner}')"></div>` : '';
 // cover: the section's own picture, else the book's cover, else a gradient with the first letter
@@ -1376,7 +1955,8 @@ ontoggle="ui.op=ui.op||{};ui.op.rsz=this.open"><summary><span>Resize or ungroup<
 // right panel: log reading / log a break form
 const detLog = (N, x, leaf) => `<div class="seg"><button class="${ui.lm === 'br' ? '' : 'on'}" onclick="lmode('ch')">Log reading</button>\
 <button class="${ui.lm === 'br' ? 'on' : ''}" onclick="lmode('br')">Log a break</button></div>${ui.lm === 'br' ? `<div class="lr"><div>\
-<label>From</label><input id="b_f" type="date" value="${today()}"></div><div><label>To (blank = still on break)</label><input id="b_t" type="date"></div></div>\
+<label>From</label><input id="b_f" type="date" value="${today()}"></div><div><label>To (blank = still on break)</label><input id="b_t" type="date">\
+</div></div>\
 <button class="btn" style="width:100%" onclick="logBr()">Add break</button>` : `<label style="margin-bottom:10px;text-transform:none;font-size:13px;letter-spacing:0">${PATH.length ? esc(x.name) : esc(N.t)}</label>\
 <div class="lr"><div><label>Read up to chapter</label><input id="l_c" type="number" min="0" value="${leaf ? x.read : dR(x)}"></div><div>\
 <label>Date</label><input id="l_d" type="date" value="${ui.ld || today()}"></div></div><button class="btn" style="width:100%" onclick="logIt()">Log</button>`}`;
@@ -1503,7 +2083,7 @@ function logBr() { const N = NV(), f = nd(gv('b_f')), t = nd(gv('b_t')); if (!f)
 } else
     (N.br = N.br || []).push({ f, t }); save(); render(); }
 // one pasted line -> {name, total}: "Arc 6, 90" (comma, colon, semicolon or tab); no number = length unknown
-const listRow = s => { const m = s.trim().match(/^(.+?)\s*[,;:\t]\s*(\d+)$/); return s.trim() ? { name: m ? m[1].trim() : s.trim(), total: m ? +m[2] : 0 } : null; };
+const listRow = s => { s = s.trim(); const m = s.match(/^(.+?)\s*[,;:\t]\s*(\d+)$/); return s ? { name: m ? m[1].trim() : s, total: m ? +m[2] : 0 } : null; };
 // add one section per pasted line inside the open section
 function addList() {
     const x = trail().pop(), N = NV(), rows = gv('pl').split('\n').map(listRow).filter(Boolean), b = x.ch.length, u = gv('bs').trim();
@@ -1642,11 +2222,12 @@ function render(f) {
     a.style.minHeight = '';
 }
 function render0() {
+    tipHide();
     document.querySelectorAll('header nav button').forEach(b => b.classList.toggle('on', b.dataset.v === (ui.v === 'detail' ? 'lib' : ui.v)));
-    const dt = ui.v === 'detail';
+    const dt = ui.v === 'detail', N = dt && NV();
     $('#hd').innerHTML = dt ? `<button class="btn" onclick="tgl()">${ui.ed ? 'Done' : 'Edit'}</button>` : '';
     $('#add').style.display = $('#bk').style.display = dt ? 'none' : '';
-    $('#app').className = dt ? 'w' + (NV() && NV().banner ? ' hb' : '') : '';
+    $('#app').className = dt ? 'w' + (N && N.banner ? ' hb' : '') : '';
     $('#app').innerHTML = ui.v === 'lib' ? libV() : ui.v === 'stats' ? statsV() : detV();
     document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { ui.f = b.dataset.f; render(); });
     const s = $('#sel');
@@ -1655,6 +2236,7 @@ function render0() {
     const p = $('#per');
     if (p)
         p.onchange = e => { ui.per = e.target.value; render(); };
+    rgWire();
     navSync();
 }
 document.querySelectorAll('header nav button').forEach(b => b.onclick = () => { ui.v = b.dataset.v; if (ui.v === 'stats')
