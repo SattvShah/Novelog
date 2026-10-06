@@ -24,7 +24,7 @@ h1 { font-size:18px; margin:0 0 14px; }
 .tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
 .tabs button { border:0; background:var(--card); color:var(--mut); font:700 13px inherit; font-family:inherit; padding:8px 14px; border-radius:20px; cursor:pointer; }
 .tabs button.on { background:var(--acc); color:#fff; }
-.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,190px)); justify-content:start; gap:20px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:20px; }
 .nv { cursor:pointer; transition:transform .15s; }
 .nv:hover { transform:translateY(-3px); }
 .cv { aspect-ratio:2/3; border-radius:6px; position:relative; overflow:hidden; box-shadow:0 8px 24px rgba(20,40,70,.18); display:flex; align-items:flex-end; padding:12px; color:#fff; }
@@ -667,6 +667,7 @@ const dataUrl = f => new Promise(r => { const fr = new FileReader(); fr.onload =
 async function mount(h) {
     try {
         STORE.dir = h;
+        await h.values().next(); // throws NotFoundError when the folder was moved, renamed or deleted
         const f = await fsGet(DATA), raw = f ? await f.text() : null;
         adopt(raw ? JSON.parse(raw) : seed());
         const files = [];
@@ -686,7 +687,7 @@ async function mount(h) {
     }
     catch (e) {
         STORE.mode = 'none';
-        gate('error', e.message);
+        gate(e.name === 'NotFoundError' ? 'missing' : 'error', e.message);
     }
 }
 function gate(kind, msg) {
@@ -696,6 +697,10 @@ function gate(kind, msg) {
 </p></div>`;
     $('#app').innerHTML = kind === 'nosupport'
         ? w('Folder saving isn’t available in this browser', '<p>Novelog can keep all your data and covers in a normal folder on your computer. This browser has that switched off. In Brave, open <b>brave://flags</b>, turn on “File System Access API”, and restart. Chrome and Edge work without changes.</p>')
+        : kind === 'missing'
+            ? w('Can’t find your data folder', `<p>Novelog can’t find “${esc(STORE.dir.name)}”. It may have been moved, renamed or deleted. Your data is still inside it, nothing was changed.</p>\
+<p>Choose the folder again (in its new place) and everything loads as before.</p><p>\
+<button class="btn" onclick="chooseDir()">Choose folder</button></p>`)
         : kind === 'reconnect'
             ? w('Reconnect your data folder', `<p>Click to let Novelog use “${esc(pendingDir.name)}” again.</p><p>\
 <button class="btn" onclick="reconnect()">Reconnect</button> <button class="ghost" onclick="chooseDir()">Pick a different folder</button></p>`)
