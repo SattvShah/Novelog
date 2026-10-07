@@ -80,6 +80,15 @@ h1 { font-size:18px; margin:0 0 14px; }
 .panels { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .panel.w { grid-column:1/-1; }
 .panel h3 { margin:0 0 10px; font-size:14px; }
+.panels .panel { position:relative; }
+.grip { position:absolute; top:8px; right:10px; width:26px; height:22px; padding:0; border:0; border-radius:6px; background:none; color:var(--mut); font-size:16px; line-height:1; cursor:grab; opacity:0; }
+.panel:hover .grip, .grip:focus-visible { opacity:.7; }
+.grip:hover { opacity:1; background:var(--in); }
+.panel.dragging { z-index:5; cursor:grabbing; box-shadow:0 14px 40px rgba(20,40,70,.28); }
+.panel.dragging .grip { cursor:grabbing; opacity:1; }
+.sorting .tip { display:none !important; }
+.ctrl .ghost { background:var(--card); }
+.ctrl .ghost:disabled { opacity:.4; cursor:default; }
 .ctrl { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
 select,input { font-family:inherit; font-size:14px; color:var(--tx); background:var(--in); border:1px solid var(--line); border-radius:6px; padding:9px 11px; width:100%; }
 .ctrl select { width:auto; background:var(--card); }
@@ -990,10 +999,21 @@ function rgPreset(k) {
 }
 // first day with any reading (the left end when only To is set)
 const rgFirst = () => (events('')[0] || { d: today() }).d;
-// slide the window back (-1) or forward (1) by its own length; forward stops at today (the length is kept)
+// the year when the range is a whole calendar year (Jan 1 - Dec 31) or this year so far (Jan 1 - today), else 0
+function rgYear() {
+    const y = RG.f.slice(0, 4);
+    return RG.f === y + '-01-01' && (RG.t === y + '-12-31' || y === today().slice(0, 4) && RG.t === today()) ? +y : 0;
+}
+// set the range to one calendar year: Jan 1 - Dec 31, or Jan 1 - today for this year
+const rgSetYear = y => rgSet(y + '-01-01', y === +today().slice(0, 4) ? today() : y + '-12-31');
+// slide the window back (-1) or forward (1) by its own length; forward stops at today (the length is kept).
+// A calendar year moves by whole years instead, so the year before "this year" is Jan - Dec and not a shifted ten months.
 function rgShift(dir) {
     if (!rgOn())
         return;
+    const y = rgYear() + dir;
+    if (rgYear())
+        return y <= +today().slice(0, 4) && rgSetYear(y);
     const f = RG.f || rgFirst(), t = RG.t || today(), len = Math.round((Date.parse(t) - Date.parse(f)) / 864e5) + 1;
     const room = Math.round((Date.parse(today()) - Date.parse(t)) / 864e5), step = dir > 0 ? Math.min(len, room) : -len;
     if (len < 1 || !step)
@@ -1121,7 +1141,7 @@ function recordsPanel(byD, all) {
         fast && recCell('Fastest novel finished', days(fast.days), esc(fast.n.t)),
         big && recCell('Biggest novel finished', big.text, esc(big.n.t))
     ].filter(Boolean);
-    return cells.length ? `<div class="panel w"><h3>Records</h3><div class="rec">${cells.join('')}</div></div>` : '';
+    return cells.length ? `<div class="panel w" data-pk="records"><h3>Records</h3><div class="rec">${cells.join('')}</div></div>` : '';
 }
 
 // Chapters per month and Reading by day of the week: two bar panels for the Stats page, from the days you logged inside the Stats range.
@@ -1164,9 +1184,9 @@ function weekdayRows(byD) {
     });
 }
 // the two panels (nothing when there is no reading to show)
-const habitPanels = byD => !Object.keys(byD).length ? '' : `<div class="panel w"><h3>Chapters per month</h3>${bars(monthRows(byD), 'var(--acc)')}\
+const habitPanels = byD => !Object.keys(byD).length ? '' : `<div class="panel w" data-pk="months"><h3>Chapters per month</h3>${bars(monthRows(byD), 'var(--acc)')}\
 <div class="cap">Green = best month · faded with a dashed edge = month still in progress</div></div>\
-<div class="panel w"><h3>Reading by day of the week (average chapters per day)</h3>${bars(weekdayRows(byD), 'var(--acc)', false, true)}\
+<div class="panel w" data-pk="weekdays"><h3>Reading by day of the week (average chapters per day)</h3>${bars(weekdayRows(byD), 'var(--acc)', false, true)}\
 <div class="cap">Green = the day you read most</div></div>`;
 
 // Novel timeline and Share by novel: two Stats panels for the All novels view. Both follow the Stats range.
@@ -1231,7 +1251,8 @@ function timeline(rows, from, to) {
 // the Novel timeline panel
 function novelTimeline() {
     const key = ['reading', 'completed', 'paused'].map(s => `<i class="sd ${s}"></i>${s[0].toUpperCase() + s.slice(1)}`).join(' &nbsp; ');
-    return `<div class="panel w"><h3>Novel timeline</h3>${timeline(timelineRows(), RG.f, rgOn() ? rgEnd() : '')}<div class="cap">${key}</div></div>`;
+    return `<div class="panel w" data-pk="timeline">\
+<h3>Novel timeline</h3>${timeline(timelineRows(), RG.f, rgOn() ? rgEnd() : '')}<div class="cap">${key}</div></div>`;
 }
 // each novel's chapters (or words) read in the range: the 5 biggest by name, the rest as one "Other" row (only when it covers 2 or more novels)
 function shareRows(ev, words) {
@@ -1256,7 +1277,121 @@ function shareByNovel(ev) {
     const words = ui.share === 'words', rows = shareRows(ev, words), total = rows.reduce((s, r) => s + r.v, 0);
     const none = `<div class="empty sm">${rgOn() ? 'No reading in this date range.' : 'No reading logged yet.'}</div>`;
     const list = rows.length ? rows.map(r => shareRow(r, total, words)).join('') : none;
-    return `<div class="panel w"><h3>Share by novel</h3>${shareSwitch(words)}${list}</div>`;
+    return `<div class="panel w" data-pk="share"><h3>Share by novel</h3>${shareSwitch(words)}${list}</div>`;
+}
+
+// Stats panel order: drag a panel by its grip (top right on hover), or press the up / down arrow on the grip, to move it. The order is
+// S.pref.panels, a list of the panels' data-pk keys, saved with the data and shared by the Stats page and every novel's Stats tab.
+const panelEls = () => [...document.querySelectorAll('.panels > .panel[data-pk]')];
+// the shown panels' keys in the saved order; panels the saved list doesn't know keep their own place
+function orderedKeys(shown, saved) {
+    const known = shown.filter(k => saved.includes(k)).sort((a, b) => saved.indexOf(a) - saved.indexOf(b));
+    let i = 0;
+    return shown.map(k => saved.includes(k) ? known[i++] : k);
+}
+// the saved list after the shown panels were rearranged: keys of panels not shown now stay where they were, new keys go last
+function mergedOrder(saved, shown) {
+    const here = shown.filter(k => saved.includes(k));
+    let i = 0;
+    return [...saved.map(k => shown.includes(k) ? here[i++] : k), ...shown.filter(k => !saved.includes(k))];
+}
+// put the panels on the page in the saved order
+function applyPanelOrder() {
+    const els = panelEls(), box = els[0] && els[0].parentNode;
+    if (box)
+        orderedKeys(els.map(e => e.dataset.pk), prefs().panels || []).forEach(k => box.appendChild(els.find(e => e.dataset.pk === k)));
+}
+// remember the order that is on the page now
+function savePanelOrder() {
+    S.pref = { ...prefs(), panels: mergedOrder(prefs().panels || [], panelEls().map(e => e.dataset.pk)) };
+    save();
+    if ($('#panelReset'))
+        $('#panelReset').disabled = false;
+}
+// back to the built-in order
+function resetPanels() {
+    const p = { ...prefs() };
+    delete p.panels;
+    S.pref = p;
+    save();
+    render();
+}
+// the reset button of the Stats controls (greyed out while the order is the built-in one)
+const panelReset = () => `<button class="ghost d" id="panelReset" onclick="resetPanels()" ${(prefs().panels || []).length ? '' : 'disabled'}>Reset panel order</button>`;
+// do a DOM move and slide the other panels from where they were to where they are now
+function flip(move, skip) {
+    const els = panelEls().filter(e => e !== skip), before = els.map(e => e.getBoundingClientRect());
+    move();
+    els.forEach((e, i) => {
+        const a = before[i], b = e.getBoundingClientRect(), dx = a.left - b.left, dy = a.top - b.top;
+        if (dx || dy)
+            e.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { duration: 180, easing: 'ease' });
+    });
+}
+// put a panel into the place of another one (before it if it was after, else after it)
+function movePanelTo(el, target) {
+    el.parentNode.insertBefore(el, el.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING ? target.nextSibling : target);
+}
+// where a panel sits in the layout, ignoring a slide animation that is still running
+function layoutRect(el) {
+    const r = el.getBoundingClientRect(), m = new DOMMatrix(getComputedStyle(el).transform);
+    return { left: r.left - m.m41, right: r.right - m.m41, top: r.top - m.m42, bottom: r.bottom - m.m42 };
+}
+// is the pointer inside this rectangle?
+const inRect = (r, e) => e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+// drag a panel by its grip: it follows the pointer while the others make room, and settles into its place on release
+function dragPanel(e, el) {
+    const x0 = e.clientX, y0 = e.clientY, r0 = el.getBoundingClientRect();
+    el.classList.add('dragging');
+    document.body.classList.add('sorting');
+    const follow = ev => {
+        el.style.transform = 'none';
+        const r = el.getBoundingClientRect();
+        el.style.transform = `translate(${ev.clientX - x0 - (r.left - r0.left)}px,${ev.clientY - y0 - (r.top - r0.top)}px)`;
+    };
+    const move = ev => {
+        const t = panelEls().find(p => p !== el && inRect(layoutRect(p), ev));
+        if (t)
+            flip(() => movePanelTo(el, t), el);
+        follow(ev);
+    };
+    const up = () => {
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', up);
+        const from = el.style.transform;
+        el.style.transform = '';
+        el.classList.remove('dragging');
+        document.body.classList.remove('sorting');
+        el.animate([{ transform: from }, { transform: 'none' }], { duration: 150, easing: 'ease' });
+        savePanelOrder();
+    };
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+}
+// move a panel one place up (-1) or down (1) with the arrow keys on its grip
+function nudgePanel(el, dir) {
+    const els = panelEls(), target = els[els.indexOf(el) + dir];
+    if (!target)
+        return;
+    flip(() => movePanelTo(el, target));
+    savePanelOrder();
+    el.querySelector('.grip').focus();
+}
+// give every panel its grip (called by render0 after the screen is drawn), in the saved order
+function panelsWire() {
+    applyPanelOrder();
+    panelEls().forEach(el => {
+        const g = document.createElement('button');
+        g.className = 'grip';
+        g.textContent = '⠿';
+        g.title = 'Drag to move this panel (or press the up / down arrow)';
+        g.onpointerdown = e => { if (e.button === 0) { e.preventDefault(); dragPanel(e, el); } };
+        g.onkeydown = e => {
+            const dir = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1 }[e.key];
+            if (dir) { e.preventDefault(); nudgePanel(el, dir); }
+        };
+        el.appendChild(g);
+    });
 }
 
 // The Stats page: stat tiles + graph panels (core), period selector, statsV (the Stats screen). Chart drawing lives in charts.js.
@@ -1281,10 +1416,10 @@ function core(nid, node) {
 <div class="l">${N ? 'Complete' : 'Finished'}</div></div><div class="tile"><div class="n">${Math.round(chV)}</div><div class="l">Chapters read</div>\
 </div><div class="tile"><div class="n">${pgV ? fmtN(pgV) : '—'}</div><div class="l">Words read</div></div><div class="tile">\
 <div class="n">${days ? (evn / days).toFixed(1) : '0'}</div><div class="l">Ch / active day</div></div>${streakTiles(logD, logAll)}${bk ? bookTile(sel, N) : ''}</div>
-<div class="panels">${none ? '<div class="panel w empty">No reading logged in this date range.</div>' : `${heatPanel(logD)}<div class="panel w"><h3>Position over time (chapters)</h3>${line(pos, { unit: 'ch', id: 'gpos', bands, from: RG.f, to: rgOn() ? rgEnd() : '' })}</div>\
-<div class="panel w"><h3>Speed over time (chapters per day, ${ui.per === 'month' ? 'monthly' : 'weekly'} average)</h3>${line(spd, { unit: 'ch/day', id: 'gspd', smooth: true, bands, zero: true, from: RG.f, to: rgOn() ? rgEnd() : '' })}</div>${recordsPanel(logAll, !N)}${habitPanels(logD)}${!N && !node ? novelTimeline() + shareByNovel(ev) : ''}${bk ? yearPanel(sel, py) : ''}
-${N || (rgOn() && !ks(ny).length) ? '' : `<div class="panel">\
-<h3>Novels finished per year</h3>${bars(ks(ny).map(k => ({ l: k, v: ny[k] })), 'var(--ok)', true)}</div>`}${Object.values(py).some(v => v > 0) ? `<div class="panel ${N ? 'w' : ''}"><h3>Words read per year</h3>${bars(ks(py).map(k => ({ l: k, v: py[k] })), 'var(--acc)', !N)}</div>` : ''}`}${N ? '' : cmpH()}</div>`;
+<div class="panels">${none ? '<div class="panel w empty">No reading logged in this date range.</div>' : `${heatPanel(logD)}<div class="panel w" data-pk="position"><h3>Position over time (chapters)</h3>${line(pos, { unit: 'ch', id: 'gpos', bands, from: RG.f, to: rgOn() ? rgEnd() : '' })}</div>\
+<div class="panel w" data-pk="speed"><h3>Speed over time (chapters per day, ${ui.per === 'month' ? 'monthly' : 'weekly'} average)</h3>${line(spd, { unit: 'ch/day', id: 'gspd', smooth: true, bands, zero: true, from: RG.f, to: rgOn() ? rgEnd() : '' })}</div>${recordsPanel(logAll, !N)}${habitPanels(logD)}${!N && !node ? novelTimeline() + shareByNovel(ev) : ''}${bk ? yearPanel(sel, py) : ''}
+${N || (rgOn() && !ks(ny).length) ? '' : `<div class="panel" data-pk="finished">\
+<h3>Novels finished per year</h3>${bars(ks(ny).map(k => ({ l: k, v: ny[k] })), 'var(--ok)', true)}</div>`}${Object.values(py).some(v => v > 0) ? `<div class="panel ${N ? 'w' : ''}" data-pk="words"><h3>Words read per year</h3>${bars(ks(py).map(k => ({ l: k, v: py[k] })), 'var(--acc)', !N)}</div>` : ''}`}${N ? '' : cmpH()}</div>`;
 }
 // start day of the week (Monday) or the month ('YYYY-MM') a day falls in: the key of the speed chart's periods
 const perKey = d => ui.per === 'month' ? d.slice(0, 7) : monOf(d);
@@ -1329,9 +1464,9 @@ function yearPanel(sel, py) {
         return '';
     for (let y = Math.min(...ys); y <= Math.max(...ys); y++)
         rows.push({ l: String(y), a: by[y] || 0, b: py[y] || 0 });
-    return `<div class="panel w"><h3>Books and words per year</h3>${dual(rows)}</div>`;
+    return `<div class="panel w" data-pk="years"><h3>Books and words per year</h3>${dual(rows)}</div>`;
 }
-function statsV() { return `<h1>Stats</h1><div class="ctrl"><select id="sel"><option value="">All novels</option>${S.novels.map(n => `<option value="${n.id}" ${ui.sel === n.id ? 'selected' : ''}>${esc(n.t)}</option>`).join('')}</select>${perSel()}</div>` + rgBar() + core(ui.sel, null); }
+function statsV() { return `<h1>Stats</h1><div class="ctrl"><select id="sel"><option value="">All novels</option>${S.novels.map(n => `<option value="${n.id}" ${ui.sel === n.id ? 'selected' : ''}>${esc(n.t)}</option>`).join('')}</select>${perSel()}${panelReset()}</div>` + rgBar() + core(ui.sel, null); }
 
 // Reading calendar (heatmap of chapters per day: the 53 weeks up to the end of the Stats range, fewer if the range is shorter) and reading-day streaks. Used by core() on the Stats page.
 // Both use the days you actually logged (loggedDays), not events(), which spreads a log over the days since the previous one.
@@ -1400,7 +1535,7 @@ function heatmap(byD) {
         `<div class="hmk">Less ${key} More</div>`;
 }
 // full-width panel for the Stats page
-const heatPanel = byD => `<div class="panel w"><h3>Reading calendar</h3>${heatmap(byD)}</div>`;
+const heatPanel = byD => `<div class="panel w" data-pk="calendar"><h3>Reading calendar</h3>${heatmap(byD)}</div>`;
 
 // Home screen: novel grid (libV), opening / adding / leaving a novel, +1 chapter button, comparison, backup & import window.
 // first line under a card: author in bold; with a cover picture (which hides the title) bold title, then the author in regular text
@@ -1430,7 +1565,7 @@ function open_(id) { ui.id = id; ui.v = 'detail'; ui.ed = false; ui.cd = false; 
 function addN() { const n = { id: uid(), t: 'New novel', a: '', pages: 0, status: 'reading', log: [], fin: '', st: '', img: '', hue: Math.floor(Math.random() * 360), root: { id: uid(), name: 'New novel', total: 0, read: 0, ch: [] } }; S.novels.push(n); save(); open_(n.id); ui.ed = true; render(); }
 function back() { ui.v = 'lib'; ui.ld = ''; ui.ed = false; render(); scrollTo(0, 0); }
 const cmpH = () => { const r = S.novels.filter(n => n.pages).sort((a, b) => b.pages - a.pages); if (!r.length)
-    return ''; const mx = r[0].pages; return `<div class="panel w"><h3>Book sizes</h3>${r.map(n => { const c = dT(n.root); return `<div class="cr">\
+    return ''; const mx = r[0].pages; return `<div class="panel w" data-pk="sizes"><h3>Book sizes</h3>${r.map(n => { const c = dT(n.root); return `<div class="cr">\
 <span>${esc(n.t)}</span><div class="bar"><i style="width:${n.pages / mx * 100}%"></i></div>\
 <span>${fmtN(n.pages)} words${c ? ` · ${c} ch · ${fmtN(n.pages / c)} words/ch` : ''}</span></div>`; }).join('')}</div>`; };
 function bump(id) { const N = S.novels.find(n => n.id === id); if (!N)
@@ -1849,7 +1984,7 @@ ${detStats(N, x)}
 ${brk(N)}${detBar(x)}
 ${ed ? detEdit(N, x) : ''}</div></div>
 ${detTabs()}
-${ui.tab === 'stats' ? `<div class="ctrl">${perSel()}</div>${rgBar()}${core(N.id, x)}` : detCols(N, x, ed)}`;
+${ui.tab === 'stats' ? `<div class="ctrl">${perSel()}${panelReset()}</div>${rgBar()}${core(N.id, x)}` : detCols(N, x, ed)}`;
 }
 const detBanner = N => N.banner ? `<div class="bnr" style="background-image:url('${N.banner}')"></div>` : '';
 // cover: the section's own picture, else the book's cover, else a gradient with the first letter
@@ -2242,6 +2377,7 @@ function render0() {
     if (p)
         p.onchange = e => { ui.per = e.target.value; render(); };
     rgWire();
+    panelsWire();
     navSync();
 }
 document.querySelectorAll('header nav button').forEach(b => b.onclick = () => { ui.v = b.dataset.v; if (ui.v === 'stats')
