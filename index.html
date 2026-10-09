@@ -84,8 +84,11 @@ h1 { font-size:18px; margin:0 0 14px; }
 .grip { position:absolute; top:8px; right:10px; width:26px; height:22px; padding:0; border:0; border-radius:6px; background:none; color:var(--mut); font-size:16px; line-height:1; cursor:grab; opacity:0; }
 .panel:hover .grip, .grip:focus-visible { opacity:.7; }
 .grip:hover { opacity:1; background:var(--in); }
-.panel.dragging { z-index:5; cursor:grabbing; box-shadow:0 14px 40px rgba(20,40,70,.28); }
+.panel.dragging { z-index:5; cursor:grabbing; box-shadow:0 14px 40px color-mix(in srgb,var(--acc) 35%,transparent); }
 .panel.dragging .grip { cursor:grabbing; opacity:1; }
+.sorting, .sorting * { user-select:none; }
+::selection { background:color-mix(in srgb,var(--acc) 35%,transparent); }
+:focus-visible { outline:2px solid var(--acc); outline-offset:2px; }
 .sorting .tip { display:none !important; }
 .ctrl .ghost { background:var(--card); }
 .ctrl .ghost:disabled { opacity:.4; cursor:default; }
