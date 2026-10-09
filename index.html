@@ -110,6 +110,7 @@ svg text { fill:var(--mut); font:11px "Overpass",system-ui,sans-serif; }
 .hist { max-height:130px; overflow:auto; font-size:13px; margin-top:10px; }
 .hist div { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--line); color:var(--mut); }
 .hist a { color:#e85d75; cursor:pointer; margin-left:10px; }
+.hist b.fin { color:var(--tx); margin-left:2px; }
 .ft { display:flex; gap:10px; align-items:center; margin-top:16px; }
 textarea { width:100%; height:170px; font:12px monospace; background:var(--in); color:var(--tx); border:1px solid var(--line); border-radius:6px; padding:10px; }
 .chips { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 2px; }
@@ -2129,11 +2130,42 @@ const logCh = (x, l) => { let o = 0; for (const q of leaves(x)) {
 } return l.c; };
 // node a log entry's chapter is counted from: x itself, or on the whole book with per-section numbering the section holding it
 const logBase = (N, x, l) => N.rs && x === N.root ? x.ch.find(z => ids(z).includes(l.p)) || x : x;
+// root-to-section chain of nodes ending at the section with this id
+const pathTo = (x, id) => x.id === id ? [x] : x.ch.map(c => pathTo(c, id)).filter(Boolean).map(p => [x, ...p])[0];
+// sortable position of a log entry: date + place in the saved list (same-day entries keep their order)
+const logKey = (l, i) => l.d + String(i).padStart(6, '0');
+// per leaf: key of the log entry that first brings it to its full chapter count
+const leafFinishes = N => { const m = new Map(); N.log.forEach((l, i) => { const q = fnd(N.root, l.p), k = logKey(l, i);
+    if (q && !q.ch.length && q.total && l.c >= q.total && (!m.has(q.id) || k < m.get(q.id)))
+        m.set(q.id, k); }); return m; };
+// was leaf z already finished before the entry with this key? (known / marked-read sections without a log count as before)
+const doneBefore = (z, key, fin, kn) => fin.has(z.id) ? fin.get(z.id) < key : kn.has(z.id) || (z.total > 0 && z.read >= z.total);
+// the sections an entry finishes, smallest first (none if it finishes nothing): its leaf, then each parent whose other leaves were done;
+// a side story (x) is its own thing: climbing stops at the topmost one, so it never finishes the sections around it
+const finishedBy = (N, l, i, fin, kn) => { const key = logKey(l, i), p = pathTo(N.root, l.p) || [], out = [], top = p.findIndex(z => z.x);
+    if (fin.get(l.p) !== key)
+        return out;
+    for (let j = p.length - 1; j >= Math.max(top, 0); j--) {
+        if (!leaves(p[j]).every(z => z.id === l.p || doneBefore(z, key, fin, kn)))
+            break;
+        out.push(p[j]);
+    } return out; };
+// the open page counts as "the whole thing": nodes the entry finished below the page (excluding the page itself)
+const finBelow = (x, done) => done.filter(z => z !== x && ids(x).includes(z.id));
+// plain text finish symbols (the \uFE0E keeps them from turning into emoji)
+const CHECK = '✓\uFE0E', STAR = '★\uFE0E';
+// finish mark of a row: ★ when the entry finished the open page itself, else one ✓ per level finished below it
+const finMark = (x, done) => done.includes(x) ? ` <b class="fin">${STAR}</b>` : finBelow(x, done).length ? ` <b class="fin">${CHECK.repeat(finBelow(x, done).length)}</b>` : '';
+// hover text of a log row: path below the open page with a ✓ after every section that was finished; ★ + page name first if the page itself was
+const logTip = (N, x, l, done) => { const ok = new Set(done.map(z => z.id)), top = x === N.root ? N.t : x.name;
+    return [...(ok.has(x.id) ? ['★ ' + top] : []), ...pathTo(x, l.p).slice(1).map(z => z.name + (ok.has(z.id) ? ' ' + CHECK : ''))].join(' · '); };
+// one log row: date + direct subdivision + finish marks, chapter, ✕ in edit mode
+const logRow = (N, x, l, i, ed, fin, kn) => { const done = finishedBy(N, l, i, fin, kn); return `<div><span title="${esc(logTip(N, x, l, done))}">${logDate(l.d)}${esc(logPart(x, l.p))}${finMark(x, done)}</span>\
+<span>Ch ${logCh(logBase(N, x, l), l)}${ed ? `<a onclick="rmLog('${l.d}',${l.c},'${l.p || ''}')">✕</a>` : ''}</span>\
+</div>`; };
 // log history of x: only entries inside x (whole book = all), chapter counted from x's start; breaks belong to the whole book.
 // Newest date first; on the same day the entry added last is on top (i = position in the saved list)
-const hist = (N, x, ed) => { const it = [...N.log.map((l, i) => ({ l, i })).filter(({ l }) => x === N.root || ids(x).includes(l.p)).map(({ l, i }) => ({ d: l.d, k: 1, i, h: `<div><span>${logDate(l.d)}${esc(logPart(x, l.p))}</span>\
-<span>Ch ${logCh(logBase(N, x, l), l)}${ed ? `<a onclick="rmLog('${l.d}',${l.c},'${l.p || ''}')">✕</a>` : ''}</span>\
-</div>` })), ...(N.br || []).map((b, i) => ({ d: b.f, k: 0, i, h: `<div><span>⏸ Break · ${logDate(b.f)} → ${b.t ? logDate(b.t) : 'ongoing'}</span>\
+const hist = (N, x, ed) => { const fin = leafFinishes(N), kn = knownIds(N.root), it = [...N.log.map((l, i) => ({ l, i })).filter(({ l }) => x === N.root || ids(x).includes(l.p)).map(({ l, i }) => ({ d: l.d, k: 1, i, h: logRow(N, x, l, i, ed, fin, kn) })), ...(N.br || []).map((b, i) => ({ d: b.f, k: 0, i, h: `<div><span>⏸ Break · ${logDate(b.f)} → ${b.t ? logDate(b.t) : 'ongoing'}</span>\
 <span>${ed ? `<a onclick="rmBr(${i})">✕</a>` : ''}</span></div>` }))].sort((a, b) => b.d.localeCompare(a.d) || b.k - a.k || b.i - a.i); return it.length ? it.map(x => x.h).join('') : '<span style="color:var(--mut)">No dated entries yet.</span>'; };
 
 // Novel / section page actions: edit mode, sections, fields, breaks, logging, pictures, delete. (The HTML lives in detail.js.)
@@ -2271,7 +2303,9 @@ function logIt() {
     const N = NV(), x = trail().pop(), c = +gv('l_c'), d = nd(gv('l_d')) || today();
     if (isNaN(c))
         return;
+    const since = N.log.length;
     logAt(N, x, c, d);
+    mergeDay(N, d, since);
     ui.ld = d;
     if (N.status === 'planned')
         N.status = 'reading';
